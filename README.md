@@ -2,6 +2,12 @@
 
 A modern, interactive web-based casino-style spin wheel game featuring all 52 playing cards. Built with pure HTML5, CSS3, and JavaScript - no dependencies required!
 
+## 🌐 Live Demo
+
+**Play now at: [https://noerarief23.github.io/SPINWHEEL-playing-cards/](https://noerarief23.github.io/SPINWHEEL-playing-cards/)**
+
+The game is automatically deployed to GitHub Pages whenever changes are pushed to the main branch.
+
 ## 🎰 Features
 
 - **Interactive Spin Wheel**: Beautiful, colorful wheel displaying all 52 playing cards (Ace through King, ♠ ♥ ♦ ♣)
@@ -14,6 +20,10 @@ A modern, interactive web-based casino-style spin wheel game featuring all 52 pl
 
 ## 🚀 Quick Start
 
+### Play Online
+Visit the live demo at **[https://noerarief23.github.io/SPINWHEEL-playing-cards/](https://noerarief23.github.io/SPINWHEEL-playing-cards/)**
+
+### Run Locally
 Simply open `index.html` in your web browser, or serve it with any HTTP server:
 
 ```bash
@@ -40,10 +50,13 @@ Then navigate to `http://localhost:8080` in your browser.
 
 ```
 SPINWHEEL-playing-cards/
-├── index.html          # Main HTML structure
-├── style.css           # Modern CSS styling with neon effects
-├── script.js           # Game logic and animation
-└── README.md           # This file
+├── .github/
+│   └── workflows/
+│       └── deploy.yml      # GitHub Pages deployment workflow
+├── index.html              # Main HTML structure
+├── style.css               # Modern CSS styling with neon effects
+├── script.js               # Game logic and animation
+└── README.md               # This file
 ```
 
 ## 🎨 Design Features
@@ -83,6 +96,16 @@ Fully optimized for mobile devices with:
 - No data collection or tracking
 - Client-side only - no server required
 - Secure by design
+
+## 🚀 Deployment
+
+This project is configured for automatic deployment to GitHub Pages:
+
+1. **Automatic Deployment**: Every push to the `main` branch automatically deploys to GitHub Pages
+2. **Manual Deployment**: You can also trigger deployment manually from the Actions tab
+3. **Live URL**: After deployment, the site is available at `https://noerarief23.github.io/SPINWHEEL-playing-cards/`
+
+The deployment workflow is defined in `.github/workflows/deploy.yml` and uses GitHub Actions to automatically publish the site.
 
 ## 📄 License
 
