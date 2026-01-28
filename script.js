@@ -254,6 +254,14 @@ function spin() {
             const winningIndex = Math.floor(pointerAngle / segmentAngle) % availableCards.length;
             currentCard = availableCards[winningIndex];
 
+            // Validate currentCard before processing
+            if (!currentCard) {
+                console.error(`Invalid card at index ${winningIndex}: availableCards may have been modified during spin`);
+                isSpinning = false;
+                spinButton.disabled = false;
+                return;
+            }
+
             // Remove the drawn card from available cards
             availableCards.splice(winningIndex, 1);
             drawnCards.push(currentCard);
@@ -324,6 +332,14 @@ function updateStats() {
 
 // Add card to history
 function addToHistory(card) {
+    if (!card) {
+        console.error(
+            'Cannot add undefined card to history. Check calling function. Stack trace:',
+            new Error().stack
+        );
+        return;
+    }
+    
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
     
@@ -464,6 +480,10 @@ function resetGame() {
     // Reset result display
     resultCard.classList.remove('show');
     resultText.textContent = 'Spin the wheel to get a card!';
+    
+    // Reset spin state and re-enable button
+    isSpinning = false;
+    spinButton.disabled = false;
     
     // Redraw wheel
     needsRedraw = true;
