@@ -70,14 +70,99 @@ header {
     text-shadow: 0 0 10px #ffaa00;
 }
 
-/* Main Content */
+/* Config Panel */
+.config-panel {
+    width: 100%;
+    max-width: 1000px;
+    background: rgba(26, 0, 51, 0.5);
+    border: 2px solid #ff00ff;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.config-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.config-item label {
+    color: #ffaa00;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.config-item select,
+.config-item input[type="number"],
+.config-item input[type="text"] {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #00ffff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 1rem;
+    min-width: 150px;
+}
+
+.config-item input[type="text"] {
+    min-width: 200px;
+}
+
+.mark-button {
+    background: linear-gradient(135deg, #00ffff 0%, #0099ff 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mark-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+}
+
+/* Main Content Layout */
+.main-content {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
 main {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 100%;
     padding: 20px 0;
 }
 
@@ -225,6 +310,124 @@ main {
     left: 100%;
 }
 
+/* History Panel */
+.history-panel {
+    width: 280px;
+    background: rgba(26, 0, 51, 0.7);
+    border: 2px solid #00ffff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-panel h3 {
+    color: #00ffff;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+.card-history-list {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    min-height: 200px;
+}
+
+.history-item {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #666;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.history-item-card {
+    font-size: 1.5rem;
+    font-weight: bold;
+    min-width: 50px;
+}
+
+.history-item-card.red {
+    color: #ff0000;
+}
+
+.history-item-card.black {
+    color: #fff;
+}
+
+.history-item-name {
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.stats {
+    border-top: 1px solid #666;
+    padding-top: 15px;
+    text-align: center;
+}
+
+.stats p {
+    margin: 5px 0;
+    color: #ffaa00;
+    font-weight: bold;
+}
+
+.stats span {
+    color: #00ffff;
+    font-size: 1.2rem;
+}
+
+/* Reset Button */
+.reset-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #ff5722 0%, #ff1744 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 15px 30px;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 23, 68, 0.5);
+    transition: all 0.3s ease;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reset-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(255, 23, 68, 0.8);
+}
+
+.reset-button span:first-child {
+    font-size: 1.5rem;
+}
+
 /* Footer */
 footer {
     text-align: center;
@@ -240,6 +443,40 @@ footer {
     }
 
     .subtitle {
+        font-size: 1rem;
+    }
+
+    .config-panel {
+        flex-direction: column;
+        padding: 15px;
+    }
+
+    .config-item {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .config-item select,
+    .config-item input[type="number"],
+    .config-item input[type="text"] {
+        width: 100%;
+    }
+
+    .main-content {
+        flex-direction: column;
+    }
+
+    .history-panel {
+        width: 100%;
+        max-height: 300px;
+        order: -1;
+    }
+
+    .reset-button {
+        bottom: 15px;
+        right: 15px;
+        padding: 12px 20px;
         font-size: 1rem;
     }
 
@@ -275,6 +512,15 @@ footer {
     }
 
     .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .config-panel {
+        padding: 10px;
+    }
+
+    .reset-button {
+        padding: 10px 15px;
         font-size: 0.9rem;
     }
 

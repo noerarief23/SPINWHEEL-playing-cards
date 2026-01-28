@@ -13,25 +13,62 @@
             <p class="subtitle">Spin the wheel and test your luck!</p>
         </header>
 
-        <main>
-            <div class="wheel-container">
-                <div class="wheel-pointer"></div>
-                <canvas id="wheelCanvas" role="img" aria-label="Spin wheel with 52 playing cards"></canvas>
+        <!-- Config Panel -->
+        <div class="config-panel">
+            <div class="config-item">
+                <label for="cardCount">Cards to draw:</label>
+                <select id="cardCount">
+                    <option value="52">All Cards (52)</option>
+                    <option value="26">Half Deck (26)</option>
+                    <option value="13">Quarter Deck (13)</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <input type="number" id="customCardCount" class="hidden" min="1" max="52" value="10">
             </div>
+            <div class="config-item">
+                <label for="manualInput">Mark cards as drawn:</label>
+                <input type="text" id="manualInput" placeholder="e.g., A♠, K♥, 10♦" aria-describedby="manualInputHelp">
+                <button id="markCardsBtn" class="mark-button" aria-label="Mark entered cards as drawn">Mark</button>
+                <span id="manualInputHelp" class="sr-only">Enter cards separated by commas. Example: A♠, K♥, 10♦</span>
+            </div>
+        </div>
 
-            <div class="result-display" aria-live="polite" aria-atomic="true">
-                <div id="resultCard" class="result-card">
-                    <div class="card-value"></div>
-                    <div class="card-suit"></div>
+        <div class="main-content">
+            <main>
+                <div class="wheel-container">
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheelCanvas" role="img" aria-label="Spin wheel with 52 playing cards"></canvas>
                 </div>
-                <div id="resultText" class="result-text">Spin the wheel to get a card!</div>
-            </div>
 
-            <button id="spinButton" class="spin-button">
-                <span class="button-text">SPIN</span>
-                <span class="button-glow"></span>
-            </button>
-        </main>
+                <div class="result-display" aria-live="polite" aria-atomic="true">
+                    <div id="resultCard" class="result-card">
+                        <div class="card-value"></div>
+                        <div class="card-suit"></div>
+                    </div>
+                    <div id="resultText" class="result-text">Spin the wheel to get a card!</div>
+                </div>
+
+                <button id="spinButton" class="spin-button">
+                    <span class="button-text">SPIN</span>
+                    <span class="button-glow"></span>
+                </button>
+            </main>
+
+            <!-- Right Panel: Card History -->
+            <aside class="history-panel">
+                <h3>Card History</h3>
+                <div id="cardHistory" class="card-history-list"></div>
+                <div class="stats">
+                    <p>Remaining: <span id="remainingCount">52</span></p>
+                    <p>Drawn: <span id="drawnCount">0</span></p>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Reset Button -->
+        <button id="resetButton" class="reset-button" aria-label="Reset game">
+            <span>↻</span> Reset
+        </button>
 
         <footer>
             <p>&copy; 2026 Spinwheel Playing Cards - ODIN</p>
