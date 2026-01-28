@@ -27,8 +27,9 @@
             </div>
             <div class="config-item">
                 <label for="manualInput">Mark cards as drawn:</label>
-                <input type="text" id="manualInput" placeholder="e.g., A♠, K♥, 10♦">
-                <button id="markCardsBtn" class="mark-button">Mark</button>
+                <input type="text" id="manualInput" placeholder="e.g., A♠, K♥, 10♦" aria-describedby="manualInputHelp">
+                <button id="markCardsBtn" class="mark-button" aria-label="Mark entered cards as drawn">Mark</button>
+                <span id="manualInputHelp" class="sr-only">Enter cards separated by commas. Example: A♠, K♥, 10♦</span>
             </div>
         </div>
 

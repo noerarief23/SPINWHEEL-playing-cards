@@ -317,6 +317,9 @@ function getRankName(rank) {
 function updateStats() {
     remainingCountSpan.textContent = availableCards.length;
     drawnCountSpan.textContent = drawnCards.length;
+    
+    // Update canvas aria-label to reflect current card count
+    canvas.setAttribute('aria-label', `Spin wheel with ${availableCards.length} playing cards`);
 }
 
 // Add card to history
@@ -342,7 +345,11 @@ function addToHistory(card) {
 // Parse manual card input
 function parseCardInput(input) {
     const cards = [];
+    const seen = new Set();
     const parts = input.split(',').map(s => s.trim()).filter(s => s);
+    
+    // Get the configured deck (first maxCards from allCards)
+    const configuredDeck = allCards.slice(0, maxCards);
     
     for (const part of parts) {
         // Extract rank and suit (case-insensitive)
@@ -351,10 +358,19 @@ function parseCardInput(input) {
             const rank = match[1];
             const suitSymbol = match[2];
             
-            // Find the card in allCards
-            const card = allCards.find(c => c.rank === rank && c.suit === suitSymbol);
+            // Create unique key for deduplication
+            const cardKey = `${rank}${suitSymbol}`;
+            
+            // Skip if already processed
+            if (seen.has(cardKey)) {
+                continue;
+            }
+            
+            // Find the card in the configured deck (not all cards)
+            const card = configuredDeck.find(c => c.rank === rank && c.suit === suitSymbol);
             if (card) {
                 cards.push(card);
+                seen.add(cardKey);
             }
         }
     }
@@ -376,7 +392,7 @@ function markCardsAsDrawn() {
     
     // Check if we would exceed maxCards
     if (drawnCards.length >= maxCards) {
-        alert('Cannot mark more cards. All configured cards have been drawn.');
+        alert('Cannot mark more cards. The configured deck limit has been reached.');
         return;
     }
     
@@ -432,6 +448,9 @@ function resetGame() {
     }
     
     // Reset available cards to first maxCards
+    // Note: When using a partial deck (e.g., 13, 26), cards are taken sequentially
+    // from the standard deck order (A♠, 2♠, 3♠, ... K♠, A♥, 2♥, ...).
+    // This ensures consistent and predictable deck composition.
     availableCards = allCards.slice(0, maxCards);
     drawnCards = [];
     currentCard = null;
