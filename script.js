@@ -9,10 +9,10 @@ const SUITS = {
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 // Generate all 52 cards
-const cards = [];
+const allCards = [];
 Object.keys(SUITS).forEach(suitKey => {
     RANKS.forEach(rank => {
-        cards.push({
+        allCards.push({
             rank: rank,
             suit: SUITS[suitKey].symbol,
             suitName: SUITS[suitKey].name,
@@ -22,15 +22,31 @@ Object.keys(SUITS).forEach(suitKey => {
     });
 });
 
+// Game state
+let availableCards = [...allCards];
+let drawnCards = [];
+let maxCards = 52; // Default to all cards
+
 // Wheel configuration
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas?.getContext('2d');
 const spinButton = document.getElementById('spinButton');
 const resultCard = document.getElementById('resultCard');
 const resultText = document.getElementById('resultText');
+const cardCountSelect = document.getElementById('cardCount');
+const customCardCountInput = document.getElementById('customCardCount');
+const manualInput = document.getElementById('manualInput');
+const markCardsBtn = document.getElementById('markCardsBtn');
+const resetButton = document.getElementById('resetButton');
+const cardHistoryDiv = document.getElementById('cardHistory');
+const remainingCountSpan = document.getElementById('remainingCount');
+const drawnCountSpan = document.getElementById('drawnCount');
 
 // Validate required elements exist
-if (!canvas || !ctx || !spinButton || !resultCard || !resultText) {
+if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
+    !cardCountSelect || !customCardCountInput || !manualInput || 
+    !markCardsBtn || !resetButton || !cardHistoryDiv || 
+    !remainingCountSpan || !drawnCountSpan) {
     console.error('Required DOM elements not found');
     throw new Error('Failed to initialize game: Missing required elements');
 }
@@ -80,7 +96,7 @@ function prerenderWheel() {
     const centerX = canvas.width / (2 * dpr);
     const centerY = canvas.height / (2 * dpr);
     const radius = canvas.width / (2 * dpr) - 10;
-    const numSegments = cards.length;
+    const numSegments = availableCards.length;
     const anglePerSegment = (2 * Math.PI) / numSegments;
 
     offscreenCtx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
@@ -112,7 +128,7 @@ function prerenderWheel() {
         offscreenCtx.font = 'bold 16px Arial';
         offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
         offscreenCtx.shadowBlur = 4;
-        offscreenCtx.fillText(cards[i].display, radius * 0.7, 0);
+        offscreenCtx.fillText(availableCards[i].display, radius * 0.7, 0);
         offscreenCtx.restore();
     }
 
@@ -161,6 +177,12 @@ function drawWheel() {
 function spin() {
     if (isSpinning) return;
 
+    // Check if there are available cards
+    if (availableCards.length === 0) {
+        resultText.textContent = 'No more cards available! Please reset.';
+        return;
+    }
+
     isSpinning = true;
     spinButton.disabled = true;
     resultCard.classList.remove('show');
@@ -200,9 +222,20 @@ function spin() {
             
             // Determine winning card (pointer at top points to -π/2)
             const pointerAngle = (2 * Math.PI - rotation - Math.PI / 2) % (2 * Math.PI);
-            const segmentAngle = (2 * Math.PI) / cards.length;
-            const winningIndex = Math.floor(pointerAngle / segmentAngle) % cards.length;
-            currentCard = cards[winningIndex];
+            const segmentAngle = (2 * Math.PI) / availableCards.length;
+            const winningIndex = Math.floor(pointerAngle / segmentAngle) % availableCards.length;
+            currentCard = availableCards[winningIndex];
+
+            // Remove the drawn card from available cards
+            availableCards.splice(winningIndex, 1);
+            drawnCards.push(currentCard);
+            
+            // Update UI
+            updateStats();
+            addToHistory(currentCard);
+            
+            // Redraw wheel without the drawn card
+            needsRedraw = true;
 
             // Show result
             showResult();
@@ -252,8 +285,151 @@ function getRankName(rank) {
     return rankNames[rank] || rank;
 }
 
+// Update stats display
+function updateStats() {
+    remainingCountSpan.textContent = availableCards.length;
+    drawnCountSpan.textContent = drawnCards.length;
+}
+
+// Add card to history
+function addToHistory(card) {
+    const historyItem = document.createElement('div');
+    historyItem.className = 'history-item';
+    
+    const cardDisplay = document.createElement('div');
+    cardDisplay.className = `history-item-card ${card.color}`;
+    cardDisplay.textContent = card.display;
+    
+    const cardName = document.createElement('div');
+    cardName.className = 'history-item-name';
+    cardName.textContent = `${getRankName(card.rank)} of ${card.suitName}`;
+    
+    historyItem.appendChild(cardDisplay);
+    historyItem.appendChild(cardName);
+    
+    // Add at the top
+    cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
+}
+
+// Parse manual card input
+function parseCardInput(input) {
+    const cards = [];
+    const parts = input.split(',').map(s => s.trim()).filter(s => s);
+    
+    for (const part of parts) {
+        // Extract rank and suit
+        const match = part.match(/^([A2-9]|10|[JQK])([♠♥♦♣])$/);
+        if (match) {
+            const rank = match[1];
+            const suitSymbol = match[2];
+            
+            // Find the card in allCards
+            const card = allCards.find(c => c.rank === rank && c.suit === suitSymbol);
+            if (card) {
+                cards.push(card);
+            }
+        }
+    }
+    
+    return cards;
+}
+
+// Mark cards as drawn
+function markCardsAsDrawn() {
+    const input = manualInput.value.trim();
+    if (!input) return;
+    
+    const cardsToMark = parseCardInput(input);
+    
+    if (cardsToMark.length === 0) {
+        alert('Invalid card format. Use format like: A♠, K♥, 10♦');
+        return;
+    }
+    
+    let marked = 0;
+    for (const card of cardsToMark) {
+        // Check if card is still available
+        const index = availableCards.findIndex(c => 
+            c.rank === card.rank && c.suit === card.suit
+        );
+        
+        if (index !== -1) {
+            // Remove from available and add to drawn
+            availableCards.splice(index, 1);
+            drawnCards.push(card);
+            addToHistory(card);
+            marked++;
+        }
+    }
+    
+    if (marked > 0) {
+        updateStats();
+        needsRedraw = true;
+        drawWheel();
+        manualInput.value = '';
+    }
+    
+    alert(`Marked ${marked} card(s) as drawn`);
+}
+
+// Reset the game
+function resetGame() {
+    // Reset to initial card count based on config
+    const cardCountValue = cardCountSelect.value;
+    
+    if (cardCountValue === 'custom') {
+        maxCards = parseInt(customCardCountInput.value) || 52;
+    } else {
+        maxCards = parseInt(cardCountValue);
+    }
+    
+    // Reset available cards to first maxCards
+    availableCards = allCards.slice(0, maxCards);
+    drawnCards = [];
+    currentCard = null;
+    
+    // Clear history
+    cardHistoryDiv.innerHTML = '';
+    
+    // Update stats
+    updateStats();
+    
+    // Reset result display
+    resultCard.classList.remove('show');
+    resultText.textContent = 'Spin the wheel to get a card!';
+    
+    // Redraw wheel
+    needsRedraw = true;
+    drawWheel();
+}
+
+// Handle card count change
+function handleCardCountChange() {
+    const value = cardCountSelect.value;
+    
+    if (value === 'custom') {
+        customCardCountInput.style.display = 'inline-block';
+    } else {
+        customCardCountInput.style.display = 'none';
+    }
+    
+    // Auto-reset when changing config
+    resetGame();
+}
+
 // Event listeners
 spinButton.addEventListener('click', spin);
+resetButton.addEventListener('click', resetGame);
+cardCountSelect.addEventListener('change', handleCardCountChange);
+customCardCountInput.addEventListener('change', resetGame);
+markCardsBtn.addEventListener('click', markCardsAsDrawn);
+
+// Allow Enter key on manual input
+manualInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        markCardsAsDrawn();
+    }
+});
 
 // Handle responsive canvas sizing
 function resizeCanvas() {
@@ -294,6 +470,7 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('load', () => {
     resizeCanvas();
+    updateStats();
 });
 
 // Draw initial wheel
