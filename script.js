@@ -1,9 +1,9 @@
 // Card definitions
 const SUITS = {
-    SPADES: { symbol: '♠', color: 'black' },
-    HEARTS: { symbol: '♥', color: 'red' },
-    DIAMONDS: { symbol: '♦', color: 'red' },
-    CLUBS: { symbol: '♣', color: 'black' }
+    SPADES: { symbol: '♠', color: 'black', name: 'Spades' },
+    HEARTS: { symbol: '♥', color: 'red', name: 'Hearts' },
+    DIAMONDS: { symbol: '♦', color: 'red', name: 'Diamonds' },
+    CLUBS: { symbol: '♣', color: 'black', name: 'Clubs' }
 };
 
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
@@ -15,6 +15,7 @@ Object.keys(SUITS).forEach(suitKey => {
         cards.push({
             rank: rank,
             suit: SUITS[suitKey].symbol,
+            suitName: SUITS[suitKey].name,
             color: SUITS[suitKey].color,
             display: `${rank}${SUITS[suitKey].symbol}`
         });
@@ -52,18 +53,39 @@ const segmentColors = [
     '#FF5722'
 ];
 
-// Draw the wheel
-function drawWheel() {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = canvas.width / 2 - 10;
+// Offscreen canvas for performance optimization
+let offscreenCanvas = null;
+let offscreenCtx = null;
+let needsRedraw = true;
+
+// Prerender the static wheel to an offscreen canvas
+function prerenderWheel() {
+    const dpr = window.devicePixelRatio || 1;
+    
+    if (!offscreenCanvas) {
+        offscreenCanvas = document.createElement('canvas');
+        offscreenCtx = offscreenCanvas.getContext('2d');
+    }
+
+    // Update offscreen canvas size to match main canvas
+    if (offscreenCanvas.width !== canvas.width || offscreenCanvas.height !== canvas.height) {
+        offscreenCanvas.width = canvas.width;
+        offscreenCanvas.height = canvas.height;
+        
+        // Scale offscreen context for logical coordinates
+        offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
+        offscreenCtx.scale(dpr, dpr);
+    }
+
+    const centerX = canvas.width / (2 * dpr);
+    const centerY = canvas.height / (2 * dpr);
+    const radius = canvas.width / (2 * dpr) - 10;
     const numSegments = cards.length;
     const anglePerSegment = (2 * Math.PI) / numSegments;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(rotation);
+    offscreenCtx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    offscreenCtx.save();
+    offscreenCtx.translate(centerX, centerY);
 
     // Draw segments
     for (let i = 0; i < numSegments; i++) {
@@ -71,42 +93,66 @@ function drawWheel() {
         const colorIndex = i % segmentColors.length;
 
         // Draw segment
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius, angle, angle + anglePerSegment);
-        ctx.closePath();
-        ctx.fillStyle = segmentColors[colorIndex];
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        offscreenCtx.beginPath();
+        offscreenCtx.moveTo(0, 0);
+        offscreenCtx.arc(0, 0, radius, angle, angle + anglePerSegment);
+        offscreenCtx.closePath();
+        offscreenCtx.fillStyle = segmentColors[colorIndex];
+        offscreenCtx.fill();
+        offscreenCtx.strokeStyle = '#ffffff';
+        offscreenCtx.lineWidth = 2;
+        offscreenCtx.stroke();
 
         // Draw card text
-        ctx.save();
-        ctx.rotate(angle + anglePerSegment / 2);
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 4;
-        ctx.fillText(cards[i].display, radius * 0.7, 0);
-        ctx.restore();
+        offscreenCtx.save();
+        offscreenCtx.rotate(angle + anglePerSegment / 2);
+        offscreenCtx.textAlign = 'center';
+        offscreenCtx.textBaseline = 'middle';
+        offscreenCtx.fillStyle = '#ffffff';
+        offscreenCtx.font = 'bold 16px Arial';
+        offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        offscreenCtx.shadowBlur = 4;
+        offscreenCtx.fillText(cards[i].display, radius * 0.7, 0);
+        offscreenCtx.restore();
     }
 
     // Draw center circle
-    ctx.beginPath();
-    ctx.arc(0, 0, 30, 0, 2 * Math.PI);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-    ctx.strokeStyle = '#ffaa00';
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    offscreenCtx.beginPath();
+    offscreenCtx.arc(0, 0, 30, 0, 2 * Math.PI);
+    offscreenCtx.fillStyle = '#ffffff';
+    offscreenCtx.fill();
+    offscreenCtx.strokeStyle = '#ffaa00';
+    offscreenCtx.lineWidth = 3;
+    offscreenCtx.stroke();
 
     // Draw center text
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 14px Arial';
-    ctx.fillText('SPIN', 0, 0);
+    offscreenCtx.fillStyle = '#000000';
+    offscreenCtx.font = 'bold 14px Arial';
+    offscreenCtx.fillText('SPIN', 0, 0);
+
+    offscreenCtx.restore();
+    needsRedraw = false;
+}
+
+// Draw the wheel (using prerendered offscreen canvas)
+function drawWheel() {
+    // Prerender if needed
+    if (needsRedraw || !offscreenCanvas) {
+        prerenderWheel();
+    }
+
+    const dpr = window.devicePixelRatio || 1;
+    const centerX = canvas.width / (2 * dpr);
+    const centerY = canvas.height / (2 * dpr);
+
+    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotation);
+    ctx.translate(-centerX, -centerY);
+    
+    // Draw the prerendered wheel
+    ctx.drawImage(offscreenCanvas, 0, 0);
 
     ctx.restore();
 }
@@ -152,8 +198,8 @@ function spin() {
             // Normalize rotation
             rotation = rotation % (2 * Math.PI);
             
-            // Determine winning card
-            const pointerAngle = (2 * Math.PI - rotation + Math.PI / 2) % (2 * Math.PI);
+            // Determine winning card (pointer at top points to -π/2)
+            const pointerAngle = (2 * Math.PI - rotation - Math.PI / 2) % (2 * Math.PI);
             const segmentAngle = (2 * Math.PI) / cards.length;
             const winningIndex = Math.floor(pointerAngle / segmentAngle) % cards.length;
             currentCard = cards[winningIndex];
@@ -191,11 +237,8 @@ function showResult() {
     }, 100);
 
     // Update result text with card name
-    const suitName = Object.keys(SUITS).find(key => 
-        SUITS[key].symbol === currentCard.suit
-    );
     const rankName = getRankName(currentCard.rank);
-    resultText.textContent = `You got: ${rankName} of ${suitName}!`;
+    resultText.textContent = `You got: ${rankName} of ${currentCard.suitName}!`;
 }
 
 // Get full rank name
@@ -221,9 +264,27 @@ function resizeCanvas() {
     }
     
     const size = Math.min(container.offsetWidth, container.offsetHeight, 500);
-    
+
+    // Set the CSS size (logical size in CSS pixels)
     canvas.style.width = size + 'px';
     canvas.style.height = size + 'px';
+
+    // Adjust the drawing buffer size for HiDPI displays
+    const dpr = window.devicePixelRatio || 1;
+    const displayWidth = Math.floor(size * dpr);
+    const displayHeight = Math.floor(size * dpr);
+
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+        needsRedraw = true; // Mark for redraw when size changes
+    }
+
+    // Reset and scale the context so drawing uses logical coordinates
+    if (typeof ctx !== 'undefined' && ctx && typeof ctx.setTransform === 'function') {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+    }
     
     // Redraw wheel after resize
     drawWheel();

@@ -86,7 +86,7 @@ Fully optimized for mobile devices with:
 
 ## 📄 License
 
-This project is open source and available for personal and commercial use.
+This project does not currently have an explicit license. All rights reserved by the author. Please contact the repository owner for permission to use, copy, modify, or distribute this code.
 
 ## 🎯 Credits
 
