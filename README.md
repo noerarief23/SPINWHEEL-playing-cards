@@ -114,7 +114,7 @@ This project does not currently have an explicit license. All rights reserved by
 
 ## 🎯 Credits
 
-Created with ❤️ for casino game enthusiasts!
+Created with ❤️ for spinwheel!
 
 ---
 
