@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinwheel Playing Cards</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="neon-title">SPINWHEEL PLAYING CARDS</h1>
+            <p class="subtitle">Spin the wheel and test your luck!</p>
+        </header>
+
+        <main>
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas" role="img" aria-label="Spin wheel with 52 playing cards"></canvas>
+            </div>
+
+            <div class="result-display" aria-live="polite" aria-atomic="true">
+                <div id="resultCard" class="result-card">
+                    <div class="card-value"></div>
+                    <div class="card-suit"></div>
+                </div>
+                <div id="resultText" class="result-text">Spin the wheel to get a card!</div>
+            </div>
+
+            <button id="spinButton" class="spin-button">
+                <span class="button-text">SPIN</span>
+                <span class="button-glow"></span>
+            </button>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Spinwheel Playing Cards - ODIN</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
