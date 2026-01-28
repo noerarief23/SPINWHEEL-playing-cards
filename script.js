@@ -170,9 +170,9 @@ function prerenderWheel() {
     offscreenCtx.stroke();
 
     // Draw center text
-    offscreenCtx.fillStyle = '#000000';
-    offscreenCtx.font = 'bold 14px Arial';
-    offscreenCtx.fillText('SPIN', 0, 0);
+    // offscreenCtx.fillStyle = '#000000';
+    // offscreenCtx.font = 'bold 14px Arial';
+    // offscreenCtx.fillText('SPIN', 0, 0);
 
     offscreenCtx.restore();
     needsRedraw = false;
