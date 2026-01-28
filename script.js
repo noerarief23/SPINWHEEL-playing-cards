@@ -256,7 +256,7 @@ function spin() {
 
             // Validate currentCard before processing
             if (!currentCard) {
-                console.error('No card found at winning index');
+                console.error(`Invalid card at index ${winningIndex}: availableCards may have been modified during spin`);
                 isSpinning = false;
                 spinButton.disabled = false;
                 return;
@@ -333,7 +333,10 @@ function updateStats() {
 // Add card to history
 function addToHistory(card) {
     if (!card) {
-        console.error('Cannot add undefined card to history');
+        console.error(
+            'Cannot add undefined card to history. Check calling function. Stack trace:',
+            new Error().stack
+        );
         return;
     }
     
