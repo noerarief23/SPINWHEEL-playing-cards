@@ -52,11 +52,12 @@ Then navigate to `http://localhost:8080` in your browser.
 SPINWHEEL-playing-cards/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml      # GitHub Pages deployment workflow
-├── index.html              # Main HTML structure
-├── style.css               # Modern CSS styling with neon effects
-├── script.js               # Game logic and animation
-└── README.md               # This file
+│       └── deploy.yml          # GitHub Pages deployment workflow
+├── index.html                  # Main HTML structure
+├── style.css                   # Modern CSS styling with neon effects
+├── script.js                   # Game logic and animation
+├── README.md                   # This file
+└── DEPLOYMENT_INSTRUCTIONS.md  # Deployment guide (Indonesian)
 ```
 
 ## 🎨 Design Features
