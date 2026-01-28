@@ -270,9 +270,8 @@ function spin(isRetry = false) {
                     retryCount++;
                     console.log(`Retrying spin... Attempt ${retryCount}/${MAX_RETRIES}`);
                     isSpinning = false;
-                    spinButton.disabled = false;
                     
-                    // Wait a bit before retrying
+                    // Wait a bit before retrying (keep button disabled during retry)
                     setTimeout(() => {
                         spin(true);
                     }, 500);
@@ -280,7 +279,7 @@ function spin(isRetry = false) {
                 } else {
                     // Max retries reached - inform user to spin manually
                     console.error('Max retries reached. Please try spinning manually.');
-                    resultText.textContent = 'Spin failed after 3 attempts. Please try spinning again manually.';
+                    resultText.textContent = `Spin failed after ${MAX_RETRIES} attempts. Please try spinning again manually.`;
                     isSpinning = false;
                     spinButton.disabled = false;
                     retryCount = 0; // Reset for next attempt
