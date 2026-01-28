@@ -23,7 +23,7 @@
                     <option value="13">Quarter Deck (13)</option>
                     <option value="custom">Custom</option>
                 </select>
-                <input type="number" id="customCardCount" min="1" max="52" value="10" style="display: none;">
+                <input type="number" id="customCardCount" class="hidden" min="1" max="52" value="10">
             </div>
             <div class="config-item">
                 <label for="manualInput">Mark cards as drawn:</label>
@@ -65,7 +65,7 @@
         </div>
 
         <!-- Reset Button -->
-        <button id="resetButton" class="reset-button">
+        <button id="resetButton" class="reset-button" aria-label="Reset game">
             <span>↻</span> Reset
         </button>
 

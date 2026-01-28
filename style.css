@@ -86,6 +86,10 @@ header {
     box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
 }
 
+.hidden {
+    display: none !important;
+}
+
 .config-item {
     display: flex;
     align-items: center;

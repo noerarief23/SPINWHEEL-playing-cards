@@ -97,6 +97,34 @@ function prerenderWheel() {
     const centerY = canvas.height / (2 * dpr);
     const radius = canvas.width / (2 * dpr) - 10;
     const numSegments = availableCards.length;
+    
+    // Handle empty wheel
+    if (numSegments === 0) {
+        offscreenCtx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+        offscreenCtx.save();
+        offscreenCtx.translate(centerX, centerY);
+        
+        // Draw empty circle
+        offscreenCtx.beginPath();
+        offscreenCtx.arc(0, 0, radius, 0, 2 * Math.PI);
+        offscreenCtx.fillStyle = '#333';
+        offscreenCtx.fill();
+        offscreenCtx.strokeStyle = '#ffffff';
+        offscreenCtx.lineWidth = 2;
+        offscreenCtx.stroke();
+        
+        // Draw message
+        offscreenCtx.fillStyle = '#ffffff';
+        offscreenCtx.font = 'bold 20px Arial';
+        offscreenCtx.textAlign = 'center';
+        offscreenCtx.textBaseline = 'middle';
+        offscreenCtx.fillText('No Cards', 0, 0);
+        
+        offscreenCtx.restore();
+        needsRedraw = false;
+        return;
+    }
+    
     const anglePerSegment = (2 * Math.PI) / numSegments;
 
     offscreenCtx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
@@ -179,7 +207,7 @@ function spin() {
 
     // Check if there are available cards
     if (availableCards.length === 0) {
-        resultText.textContent = 'No more cards available! Please reset.';
+        resultText.textContent = 'No more cards available! Click the Reset button to start over.';
         return;
     }
 
@@ -317,8 +345,8 @@ function parseCardInput(input) {
     const parts = input.split(',').map(s => s.trim()).filter(s => s);
     
     for (const part of parts) {
-        // Extract rank and suit
-        const match = part.match(/^([A2-9]|10|[JQK])([♠♥♦♣])$/);
+        // Extract rank and suit (case-insensitive)
+        const match = part.toUpperCase().match(/^([A2-9]|10|[JQK])([♠♥♦♣])$/);
         if (match) {
             const rank = match[1];
             const suitSymbol = match[2];
@@ -346,8 +374,19 @@ function markCardsAsDrawn() {
         return;
     }
     
+    // Check if we would exceed maxCards
+    if (drawnCards.length >= maxCards) {
+        alert('Cannot mark more cards. All configured cards have been drawn.');
+        return;
+    }
+    
     let marked = 0;
     for (const card of cardsToMark) {
+        // Check if we would exceed maxCards
+        if (drawnCards.length >= maxCards) {
+            break;
+        }
+        
         // Check if card is still available
         const index = availableCards.findIndex(c => 
             c.rank === card.rank && c.suit === card.suit
@@ -367,9 +406,10 @@ function markCardsAsDrawn() {
         needsRedraw = true;
         drawWheel();
         manualInput.value = '';
+        alert(`Marked ${marked} card(s) as drawn`);
+    } else {
+        alert('No valid available cards found to mark');
     }
-    
-    alert(`Marked ${marked} card(s) as drawn`);
 }
 
 // Reset the game
@@ -378,7 +418,15 @@ function resetGame() {
     const cardCountValue = cardCountSelect.value;
     
     if (cardCountValue === 'custom') {
-        maxCards = parseInt(customCardCountInput.value) || 52;
+        // Validate and clamp custom card count
+        let customValue = parseInt(customCardCountInput.value);
+        if (isNaN(customValue) || customValue < 1) {
+            customValue = 1;
+        } else if (customValue > 52) {
+            customValue = 52;
+        }
+        customCardCountInput.value = customValue;
+        maxCards = customValue;
     } else {
         maxCards = parseInt(cardCountValue);
     }
@@ -408,9 +456,9 @@ function handleCardCountChange() {
     const value = cardCountSelect.value;
     
     if (value === 'custom') {
-        customCardCountInput.style.display = 'inline-block';
+        customCardCountInput.classList.remove('hidden');
     } else {
-        customCardCountInput.style.display = 'none';
+        customCardCountInput.classList.add('hidden');
     }
     
     // Auto-reset when changing config
