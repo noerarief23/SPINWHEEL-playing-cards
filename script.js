@@ -23,12 +23,18 @@ Object.keys(SUITS).forEach(suitKey => {
 
 // Wheel configuration
 const canvas = document.getElementById('wheelCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas?.getContext('2d');
 const spinButton = document.getElementById('spinButton');
 const resultCard = document.getElementById('resultCard');
 const resultText = document.getElementById('resultText');
 
-// Set canvas size
+// Validate required elements exist
+if (!canvas || !ctx || !spinButton || !resultCard || !resultText) {
+    console.error('Required DOM elements not found');
+    throw new Error('Failed to initialize game: Missing required elements');
+}
+
+// Set initial canvas size
 const canvasSize = 500;
 canvas.width = canvasSize;
 canvas.height = canvasSize;
@@ -48,13 +54,13 @@ const segmentColors = [
 
 // Draw the wheel
 function drawWheel() {
-    const centerX = canvasSize / 2;
-    const centerY = canvasSize / 2;
-    const radius = canvasSize / 2 - 10;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = canvas.width / 2 - 10;
     const numSegments = cards.length;
     const anglePerSegment = (2 * Math.PI) / numSegments;
 
-    ctx.clearRect(0, 0, canvasSize, canvasSize);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(rotation);
@@ -167,6 +173,11 @@ function showResult() {
     const cardValue = resultCard.querySelector('.card-value');
     const cardSuit = resultCard.querySelector('.card-suit');
 
+    if (!cardValue || !cardSuit) {
+        console.error('Card display elements not found');
+        return;
+    }
+
     cardValue.textContent = currentCard.rank;
     cardSuit.textContent = currentCard.suit;
     
@@ -204,17 +215,24 @@ spinButton.addEventListener('click', spin);
 // Handle responsive canvas sizing
 function resizeCanvas() {
     const container = document.querySelector('.wheel-container');
+    if (!container) {
+        console.error('Wheel container not found');
+        return;
+    }
+    
     const size = Math.min(container.offsetWidth, container.offsetHeight, 500);
     
     canvas.style.width = size + 'px';
     canvas.style.height = size + 'px';
+    
+    // Redraw wheel after resize
+    drawWheel();
 }
 
 // Initialize
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('load', () => {
     resizeCanvas();
-    drawWheel();
 });
 
 // Draw initial wheel

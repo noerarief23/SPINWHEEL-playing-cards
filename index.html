@@ -16,10 +16,10 @@
         <main>
             <div class="wheel-container">
                 <div class="wheel-pointer"></div>
-                <canvas id="wheelCanvas"></canvas>
+                <canvas id="wheelCanvas" role="img" aria-label="Spin wheel with 52 playing cards"></canvas>
             </div>
 
-            <div class="result-display">
+            <div class="result-display" aria-live="polite" aria-atomic="true">
                 <div id="resultCard" class="result-card">
                     <div class="card-value"></div>
                     <div class="card-suit"></div>
