@@ -1,6 +1,6 @@
 # SPINWHEEL PLAYING CARDS
 
-A modern, interactive web-based casino-style spin wheel game featuring all 52 playing cards. Built with pure HTML5, CSS3, and JavaScript - no dependencies required!
+A modern, interactive web-based spin wheel game featuring all 52 playing cards. Built with pure HTML5, CSS3, and JavaScript - no dependencies required!
 
 ## 🌐 Live Demo
 
