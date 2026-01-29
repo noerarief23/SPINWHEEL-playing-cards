@@ -58,6 +58,268 @@ let currentCard = null;
 let retryCount = 0;
 const MAX_RETRIES = 3;
 
+// Audio context for sound effects
+let audioContext = null;
+let spinningSound = null;
+let spinningGainNode = null;
+
+// Initialize audio context on first user interaction
+function initAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContext;
+}
+
+// Create spinning sound effect using Web Audio API
+function createSpinningSound() {
+    const ctx = initAudioContext();
+    
+    // Create oscillator for spinning sound
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    oscillator.type = 'sawtooth';
+    oscillator.frequency.setValueAtTime(100, ctx.currentTime);
+    
+    // Connect nodes
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    // Start with volume at 0.3
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    
+    oscillator.start();
+    
+    return { oscillator, gainNode };
+}
+
+// Play spinning sound
+function playSpinningSound() {
+    try {
+        const sound = createSpinningSound();
+        spinningSound = sound.oscillator;
+        spinningGainNode = sound.gainNode;
+        
+        // Modulate frequency during spin for dynamic effect
+        const ctx = audioContext;
+        const now = ctx.currentTime;
+        spinningSound.frequency.setValueAtTime(100, now);
+        spinningSound.frequency.exponentialRampToValueAtTime(200, now + 1);
+        spinningSound.frequency.exponentialRampToValueAtTime(150, now + 2);
+    } catch (error) {
+        console.error('Error playing spinning sound:', error);
+    }
+}
+
+// Stop spinning sound with fade out
+function stopSpinningSound() {
+    if (spinningSound && spinningGainNode && audioContext) {
+        try {
+            const now = audioContext.currentTime;
+            // Fade out over 0.5 seconds
+            spinningGainNode.gain.setValueAtTime(spinningGainNode.gain.value, now);
+            spinningGainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            
+            // Stop oscillator after fade out
+            setTimeout(() => {
+                if (spinningSound) {
+                    spinningSound.stop();
+                    spinningSound = null;
+                    spinningGainNode = null;
+                }
+            }, 500);
+        } catch (error) {
+            console.error('Error stopping spinning sound:', error);
+        }
+    }
+}
+
+// Play result/win sound effect
+function playResultSound() {
+    try {
+        const ctx = initAudioContext();
+        
+        // Create a pleasant win sound with multiple notes
+        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 (C major chord)
+        
+        notes.forEach((frequency, index) => {
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            const now = ctx.currentTime;
+            const startTime = now + (index * 0.1);
+            
+            // Attack and decay envelope
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+            
+            oscillator.start(startTime);
+            oscillator.stop(startTime + 0.5);
+        });
+    } catch (error) {
+        console.error('Error playing result sound:', error);
+    }
+}
+
+// Fireworks animation
+class Firework {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.particles = [];
+        this.createParticles();
+    }
+    
+    createParticles() {
+        const particleCount = 30 + Math.random() * 20;
+        const colors = ['#ff1744', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b', '#ff9800'];
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount;
+            const velocity = 2 + Math.random() * 3;
+            
+            this.particles.push({
+                x: this.x,
+                y: this.y,
+                vx: Math.cos(angle) * velocity,
+                vy: Math.sin(angle) * velocity,
+                life: 1.0,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: 2 + Math.random() * 3
+            });
+        }
+    }
+    
+    update() {
+        this.particles.forEach(particle => {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.vy += 0.1; // gravity
+            particle.life -= 0.02;
+        });
+        
+        // Remove dead particles
+        this.particles = this.particles.filter(p => p.life > 0);
+    }
+    
+    draw(ctx) {
+        this.particles.forEach(particle => {
+            ctx.save();
+            ctx.globalAlpha = particle.life;
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+    
+    isDead() {
+        return this.particles.length === 0;
+    }
+}
+
+let fireworksCanvas = null;
+let fireworksCtx = null;
+let fireworks = [];
+let fireworksAnimationId = null;
+
+// Create fireworks canvas overlay
+function createFireworksCanvas() {
+    if (!fireworksCanvas) {
+        fireworksCanvas = document.createElement('canvas');
+        fireworksCanvas.id = 'fireworksCanvas';
+        fireworksCanvas.style.position = 'fixed';
+        fireworksCanvas.style.top = '0';
+        fireworksCanvas.style.left = '0';
+        fireworksCanvas.style.width = '100%';
+        fireworksCanvas.style.height = '100%';
+        fireworksCanvas.style.pointerEvents = 'none'; // Don't block user interaction
+        fireworksCanvas.style.zIndex = '9999';
+        document.body.appendChild(fireworksCanvas);
+        fireworksCtx = fireworksCanvas.getContext('2d');
+        
+        // Set canvas size
+        resizeFireworksCanvas();
+        window.addEventListener('resize', resizeFireworksCanvas);
+    }
+    return fireworksCanvas;
+}
+
+// Resize fireworks canvas
+function resizeFireworksCanvas() {
+    if (fireworksCanvas) {
+        fireworksCanvas.width = window.innerWidth;
+        fireworksCanvas.height = window.innerHeight;
+    }
+}
+
+// Start fireworks animation
+function startFireworksAnimation() {
+    createFireworksCanvas();
+    fireworks = [];
+    
+    // Create multiple fireworks at random positions
+    const fireworkCount = 3 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < fireworkCount; i++) {
+        setTimeout(() => {
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * (window.innerHeight * 0.6) + (window.innerHeight * 0.1);
+            fireworks.push(new Firework(x, y));
+        }, i * 300);
+    }
+    
+    // Animate fireworks
+    animateFireworks();
+    
+    // Auto-stop after 3 seconds
+    setTimeout(stopFireworksAnimation, 3000);
+}
+
+// Animate fireworks
+function animateFireworks() {
+    if (!fireworksCtx) return;
+    
+    // Clear canvas
+    fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+    
+    // Update and draw fireworks
+    fireworks.forEach(firework => {
+        firework.update();
+        firework.draw(fireworksCtx);
+    });
+    
+    // Remove dead fireworks
+    fireworks = fireworks.filter(f => !f.isDead());
+    
+    // Continue animation if there are active fireworks
+    if (fireworks.length > 0) {
+        fireworksAnimationId = requestAnimationFrame(animateFireworks);
+    }
+}
+
+// Stop fireworks animation
+function stopFireworksAnimation() {
+    if (fireworksAnimationId) {
+        cancelAnimationFrame(fireworksAnimationId);
+        fireworksAnimationId = null;
+    }
+    
+    if (fireworksCtx && fireworksCanvas) {
+        fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+    }
+    
+    fireworks = [];
+}
+
 // Segment colors (grayscale)
 const segmentColors = [
     '#1a1a1a', '#2a2a2a', '#3a3a3a', '#4a4a4a',
@@ -221,6 +483,9 @@ function spin(isRetry = false) {
     resultCard.classList.remove('show');
     resultText.textContent = 'Spinning...';
 
+    // Play spinning sound effect
+    playSpinningSound();
+
     // Random spin parameters
     const minSpins = 5;
     const maxSpins = 8;
@@ -250,6 +515,9 @@ function spin(isRetry = false) {
         if (progress < 1) {
             requestAnimationFrame(animate);
         } else {
+            // Stop spinning sound when spin ends
+            stopSpinningSound();
+            
             // Normalize rotation to positive value
             rotation = ((rotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
             
@@ -329,6 +597,12 @@ function showResult() {
     // Animate in
     setTimeout(() => {
         resultCard.classList.add('show');
+        
+        // Play result sound effect
+        playResultSound();
+        
+        // Start fireworks animation
+        startFireworksAnimation();
     }, 100);
 
     // Update result text with card name
@@ -502,7 +776,11 @@ function handleCardCountChange() {
 }
 
 // Event listeners
-spinButton.addEventListener('click', spin);
+spinButton.addEventListener('click', () => {
+    // Initialize audio context on first user interaction
+    initAudioContext();
+    spin();
+});
 resetButton.addEventListener('click', resetGame);
 cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
