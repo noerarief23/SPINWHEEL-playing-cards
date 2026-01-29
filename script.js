@@ -77,32 +77,43 @@ function initAudioContext() {
 function createSpinningSound() {
     const ctx = initAudioContext();
     
+    // Drum roll sound parameters
+    const BUFFER_DURATION = 0.5; // 0.5 second buffer for drum pattern
+    const BEATS_PER_BUFFER = 16; // Number of drum hits per buffer
+    const DRUM_HIT_DURATION_RATIO = 0.1; // Portion of beat cycle for drum hit
+    const ENVELOPE_DECAY_RATE = 30; // Higher = faster decay
+    const BASS_FREQUENCY = 80; // Hz - bass drum fundamental frequency
+    const NOISE_MIX = 0.6; // Noise (snare) contribution to final sound
+    const BASS_MIX = 0.4; // Bass contribution to final sound
+    const NOISE_AMPLITUDE = 0.7;
+    const BASS_AMPLITUDE = 0.5;
+    const FILTER_CUTOFF = 1200; // Hz - low-pass filter cutoff frequency
+    const OVERALL_VOLUME = 0.25;
+    
     // Create a drum roll effect using noise and filters
-    // We'll create a looping drum roll pattern
-    const bufferSize = ctx.sampleRate * 0.5; // 0.5 second buffer for drum pattern
+    const bufferSize = ctx.sampleRate * BUFFER_DURATION;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     
     // Create drum roll pattern using filtered noise
     for (let i = 0; i < bufferSize; i++) {
         // Create drum hits at regular intervals (fast roll)
-        const beatPosition = (i / bufferSize) * 16; // 16 beats per buffer
+        const beatPosition = (i / bufferSize) * BEATS_PER_BUFFER;
         const beatPhase = beatPosition % 1;
         
         // Create drum hit envelope - quick attack and decay
         let envelope = 0;
-        if (beatPhase < 0.1) {
-            envelope = Math.exp(-beatPhase * 30); // Fast decay
+        if (beatPhase < DRUM_HIT_DURATION_RATIO) {
+            envelope = Math.exp(-beatPhase * ENVELOPE_DECAY_RATE);
         }
         
         // Add some noise for snare-like texture
-        const noise = (Math.random() * 2 - 1) * 0.7;
+        const noise = (Math.random() * 2 - 1) * NOISE_AMPLITUDE;
         
         // Low frequency component for bass drum feel
-        const bassFreq = 80;
-        const bass = Math.sin(2 * Math.PI * bassFreq * i / ctx.sampleRate) * 0.5;
+        const bass = Math.sin(2 * Math.PI * BASS_FREQUENCY * i / ctx.sampleRate) * BASS_AMPLITUDE;
         
-        data[i] = (noise * envelope * 0.6) + (bass * envelope * 0.4);
+        data[i] = (noise * envelope * NOISE_MIX) + (bass * envelope * BASS_MIX);
     }
     
     // Create buffer source that will loop
@@ -113,12 +124,12 @@ function createSpinningSound() {
     // Add a low-pass filter for warmth
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1200, ctx.currentTime);
+    filter.frequency.setValueAtTime(FILTER_CUTOFF, ctx.currentTime);
     filter.Q.setValueAtTime(1, ctx.currentTime);
     
     // Create gain node for volume control
     const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+    gainNode.gain.setValueAtTime(OVERALL_VOLUME, ctx.currentTime);
     
     // Connect the audio graph
     source.connect(filter);
@@ -127,7 +138,9 @@ function createSpinningSound() {
     
     source.start();
     
-    return { oscillator: source, gainNode }; // Keep same property names for compatibility
+    // Note: Property named 'oscillator' for backward compatibility with existing code
+    // even though this is now a BufferSourceNode, not an OscillatorNode
+    return { oscillator: source, gainNode };
 }
 
 // Play spinning sound
