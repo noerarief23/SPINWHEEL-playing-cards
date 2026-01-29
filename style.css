@@ -168,6 +168,25 @@ main {
     min-height: 700px;
 }
 
+/* New wrapper for wheel and controls */
+.wheel-section {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 1000px;
+    flex-wrap: wrap;
+}
+
+.wheel-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    min-width: 250px;
+}
+
 /* Wheel Container */
 .wheel-container {
     position: relative;
@@ -179,11 +198,15 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
 }
 
 #wheelCanvas {
+    width: 100% !important;
+    height: 100% !important;
     max-width: 100%;
     max-height: 100%;
+    display: block;
     filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.5));
     transition: transform 0.1s ease-out;
 }
@@ -482,6 +505,10 @@ footer {
         right: 15px;
         padding: 12px 20px;
         font-size: 1rem;
+    }
+
+    .wheel-section {
+        flex-direction: column;
     }
 
     .wheel-container {

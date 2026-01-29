@@ -51,11 +51,6 @@ if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
     throw new Error('Failed to initialize game: Missing required elements');
 }
 
-// Set initial canvas size
-const canvasSize = 500;
-canvas.width = canvasSize;
-canvas.height = canvasSize;
-
 // Wheel state
 let rotation = 0;
 let isSpinning = false;
@@ -85,24 +80,24 @@ function prerenderWheel() {
         offscreenCtx = offscreenCanvas.getContext('2d');
     }
 
-    // Update offscreen canvas size to match main canvas
-    if (offscreenCanvas.width !== canvas.width || offscreenCanvas.height !== canvas.height) {
-        offscreenCanvas.width = canvas.width;
-        offscreenCanvas.height = canvas.height;
-        
-        // Scale offscreen context for logical coordinates
-        offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
-        offscreenCtx.scale(dpr, dpr);
-    }
+    // Match offscreen canvas to main canvas
+    offscreenCanvas.width = canvas.width;
+    offscreenCanvas.height = canvas.height;
+    
+    // Scale offscreen context
+    offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
+    offscreenCtx.scale(dpr, dpr);
 
-    const centerX = canvas.width / (2 * dpr);
-    const centerY = canvas.height / (2 * dpr);
-    const radius = canvas.width / (2 * dpr) - 10;
+    // Use LOGICAL coordinates (CSS pixels)
+    const size = canvas.width / dpr;
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size / 2 - 10;
     const numSegments = availableCards.length;
     
     // Handle empty wheel
     if (numSegments === 0) {
-        offscreenCtx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+        offscreenCtx.clearRect(0, 0, size, size);
         offscreenCtx.save();
         offscreenCtx.translate(centerX, centerY);
         
@@ -129,7 +124,7 @@ function prerenderWheel() {
     
     const anglePerSegment = (2 * Math.PI) / numSegments;
 
-    offscreenCtx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    offscreenCtx.clearRect(0, 0, size, size);
     offscreenCtx.save();
     offscreenCtx.translate(centerX, centerY);
 
@@ -171,11 +166,6 @@ function prerenderWheel() {
     offscreenCtx.lineWidth = 3;
     offscreenCtx.stroke();
 
-    // Draw center text
-    // offscreenCtx.fillStyle = '#000000';
-    // offscreenCtx.font = 'bold 14px Arial';
-    // offscreenCtx.fillText('SPIN', 0, 0);
-
     offscreenCtx.restore();
     needsRedraw = false;
 }
@@ -188,10 +178,12 @@ function drawWheel() {
     }
 
     const dpr = window.devicePixelRatio || 1;
-    const centerX = canvas.width / (2 * dpr);
-    const centerY = canvas.height / (2 * dpr);
+    const size = canvas.width / dpr;
+    const centerX = size / 2;
+    const centerY = size / 2;
 
-    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    // Clear using logical size
+    ctx.clearRect(0, 0, size, size);
     ctx.save();
     ctx.translate(centerX, centerY);
     ctx.rotate(rotation);
@@ -515,38 +507,47 @@ function resizeCanvas() {
         return;
     }
     
-    const size = Math.min(container.offsetWidth, container.offsetHeight);
+    // Use ONLY offsetWidth (aspect-ratio ensures 1:1)
+    let size = container.offsetWidth;
+    
+    // Fallback if offsetWidth is 0
+    if (size === 0) {
+        size = Math.min(window.innerWidth - 40, 600);
+    }
 
-    // Set the CSS size (logical size in CSS pixels)
+    // Set canvas CSS size (logical pixels)
     canvas.style.width = size + 'px';
     canvas.style.height = size + 'px';
 
-    // Adjust the drawing buffer size for HiDPI displays
+    // Set drawing buffer size for HiDPI
     const dpr = window.devicePixelRatio || 1;
-    const displayWidth = Math.floor(size * dpr);
-    const displayHeight = Math.floor(size * dpr);
-
-    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
-        canvas.width = displayWidth;
-        canvas.height = displayHeight;
-        needsRedraw = true; // Mark for redraw when size changes
-    }
-
-    // Reset and scale the context so drawing uses logical coordinates
-    if (typeof ctx !== 'undefined' && ctx && typeof ctx.setTransform === 'function') {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(dpr, dpr);
-    }
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
     
-    // Redraw wheel after resize
+    // Scale context to use logical coordinates
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    
+    // Mark for redraw
+    needsRedraw = true;
+    
+    // Redraw wheel
     drawWheel();
 }
 
 // Initialize
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('load', () => {
-    resizeCanvas();
-    updateStats();
+    // Wait for layout to be ready
+    setTimeout(() => {
+        resizeCanvas();
+        updateStats();
+    }, 100);
+});
+
+// Also call on DOMContentLoaded for faster initial render
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(resizeCanvas, 50);
 });
 
 // Draw initial wheel
