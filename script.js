@@ -62,6 +62,7 @@ const MAX_RETRIES = 3;
 let audioContext = null;
 let spinningSound = null;
 let spinningGainNode = null;
+let spinningStopTimeout = null;
 
 // Initialize audio context on first user interaction
 function initAudioContext() {
@@ -116,18 +117,32 @@ function playSpinningSound() {
 function stopSpinningSound() {
     if (spinningSound && spinningGainNode && audioContext) {
         try {
+            // Clear any existing timeout
+            if (spinningStopTimeout) {
+                clearTimeout(spinningStopTimeout);
+                spinningStopTimeout = null;
+            }
+            
             const now = audioContext.currentTime;
+            const currentSound = spinningSound;
+            
             // Fade out over 0.5 seconds
             spinningGainNode.gain.setValueAtTime(spinningGainNode.gain.value, now);
             spinningGainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
             
             // Stop oscillator after fade out
-            setTimeout(() => {
-                if (spinningSound) {
-                    spinningSound.stop();
+            spinningStopTimeout = setTimeout(() => {
+                // Only stop if this is still the current sound
+                if (spinningSound === currentSound) {
+                    try {
+                        currentSound.stop();
+                    } catch (e) {
+                        // Oscillator may already be stopped
+                    }
                     spinningSound = null;
                     spinningGainNode = null;
                 }
+                spinningStopTimeout = null;
             }, 500);
         } catch (error) {
             console.error('Error stopping spinning sound:', error);
@@ -179,7 +194,8 @@ class Firework {
     }
     
     createParticles() {
-        const particleCount = 30 + Math.random() * 20;
+        const targetParticleCount = 30 + Math.random() * 20;
+        const particleCount = Math.floor(targetParticleCount);
         const colors = ['#ff1744', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b', '#ff9800'];
         
         for (let i = 0; i < particleCount; i++) {
@@ -231,6 +247,9 @@ let fireworksCanvas = null;
 let fireworksCtx = null;
 let fireworks = [];
 let fireworksAnimationId = null;
+let fireworksAutoStopTimeout = null;
+let fireworksCreationTimeouts = [];
+let fireworksResizeListenerAdded = false;
 
 // Create fireworks canvas overlay
 function createFireworksCanvas() {
@@ -247,9 +266,14 @@ function createFireworksCanvas() {
         document.body.appendChild(fireworksCanvas);
         fireworksCtx = fireworksCanvas.getContext('2d');
         
-        // Set canvas size
+        // Set canvas size with device pixel ratio for crisp rendering
         resizeFireworksCanvas();
-        window.addEventListener('resize', resizeFireworksCanvas);
+        
+        // Add resize listener only once
+        if (!fireworksResizeListenerAdded) {
+            window.addEventListener('resize', resizeFireworksCanvas);
+            fireworksResizeListenerAdded = true;
+        }
     }
     return fireworksCanvas;
 }
@@ -257,39 +281,57 @@ function createFireworksCanvas() {
 // Resize fireworks canvas
 function resizeFireworksCanvas() {
     if (fireworksCanvas) {
-        fireworksCanvas.width = window.innerWidth;
-        fireworksCanvas.height = window.innerHeight;
+        const dpr = window.devicePixelRatio || 1;
+        fireworksCanvas.width = window.innerWidth * dpr;
+        fireworksCanvas.height = window.innerHeight * dpr;
+        
+        // Scale context for high DPI displays
+        if (fireworksCtx) {
+            fireworksCtx.scale(dpr, dpr);
+        }
     }
 }
 
 // Start fireworks animation
 function startFireworksAnimation() {
     createFireworksCanvas();
+    
+    // Clear any existing timeouts
+    if (fireworksAutoStopTimeout) {
+        clearTimeout(fireworksAutoStopTimeout);
+        fireworksAutoStopTimeout = null;
+    }
+    
+    fireworksCreationTimeouts.forEach(timeout => clearTimeout(timeout));
+    fireworksCreationTimeouts = [];
+    
     fireworks = [];
     
     // Create multiple fireworks at random positions
     const fireworkCount = 3 + Math.floor(Math.random() * 3);
     for (let i = 0; i < fireworkCount; i++) {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             const x = Math.random() * window.innerWidth;
             const y = Math.random() * (window.innerHeight * 0.6) + (window.innerHeight * 0.1);
             fireworks.push(new Firework(x, y));
         }, i * 300);
+        fireworksCreationTimeouts.push(timeout);
     }
     
     // Animate fireworks
     animateFireworks();
     
     // Auto-stop after 3 seconds
-    setTimeout(stopFireworksAnimation, 3000);
+    fireworksAutoStopTimeout = setTimeout(stopFireworksAnimation, 3000);
 }
 
 // Animate fireworks
 function animateFireworks() {
     if (!fireworksCtx) return;
     
-    // Clear canvas
-    fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+    // Clear canvas with logical dimensions (CSS pixels)
+    const dpr = window.devicePixelRatio || 1;
+    fireworksCtx.clearRect(0, 0, fireworksCanvas.width / dpr, fireworksCanvas.height / dpr);
     
     // Update and draw fireworks
     fireworks.forEach(firework => {
@@ -308,13 +350,23 @@ function animateFireworks() {
 
 // Stop fireworks animation
 function stopFireworksAnimation() {
+    // Clear timeouts
+    if (fireworksAutoStopTimeout) {
+        clearTimeout(fireworksAutoStopTimeout);
+        fireworksAutoStopTimeout = null;
+    }
+    
+    fireworksCreationTimeouts.forEach(timeout => clearTimeout(timeout));
+    fireworksCreationTimeouts = [];
+    
     if (fireworksAnimationId) {
         cancelAnimationFrame(fireworksAnimationId);
         fireworksAnimationId = null;
     }
     
     if (fireworksCtx && fireworksCanvas) {
-        fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+        const dpr = window.devicePixelRatio || 1;
+        fireworksCtx.clearRect(0, 0, fireworksCanvas.width / dpr, fireworksCanvas.height / dpr);
     }
     
     fireworks = [];
