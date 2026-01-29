@@ -35,8 +35,8 @@ const resultCard = document.getElementById('resultCard');
 const resultText = document.getElementById('resultText');
 const cardCountSelect = document.getElementById('cardCount');
 const customCardCountInput = document.getElementById('customCardCount');
-const manualInput = document.getElementById('manualInput');
-const markCardsBtn = document.getElementById('markCardsBtn');
+const cardSelect = document.getElementById('cardSelect');
+const markSelectedBtn = document.getElementById('markSelectedBtn');
 const resetButton = document.getElementById('resetButton');
 const cardHistoryDiv = document.getElementById('cardHistory');
 const remainingCountSpan = document.getElementById('remainingCount');
@@ -44,8 +44,8 @@ const drawnCountSpan = document.getElementById('drawnCount');
 
 // Validate required elements exist
 if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
-    !cardCountSelect || !customCardCountInput || !manualInput || 
-    !markCardsBtn || !resetButton || !cardHistoryDiv || 
+    !cardCountSelect || !customCardCountInput || !cardSelect ||
+    !markSelectedBtn || !resetButton || !cardHistoryDiv || 
     !remainingCountSpan || !drawnCountSpan) {
     console.error('Required DOM elements not found');
     throw new Error('Failed to initialize game: Missing required elements');
@@ -353,6 +353,23 @@ function updateStats() {
     
     // Update canvas aria-label to reflect current card count
     canvas.setAttribute('aria-label', `Spin wheel with ${availableCards.length} playing cards`);
+    
+    // Update the card select dropdown
+    updateCardSelect();
+}
+
+// Update the card select dropdown with available cards
+function updateCardSelect() {
+    // Clear existing options except the first one
+    cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+    
+    // Add options for all available cards
+    availableCards.forEach((card, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        cardSelect.appendChild(option);
+    });
 }
 
 // Add card to history
@@ -383,51 +400,12 @@ function addToHistory(card) {
     cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
 }
 
-// Parse manual card input
-function parseCardInput(input) {
-    const cards = [];
-    const seen = new Set();
-    const parts = input.split(',').map(s => s.trim()).filter(s => s);
+// Mark selected card as drawn
+function markSelectedCardAsDrawn() {
+    const selectedIndex = cardSelect.value;
     
-    // Get the configured deck (first maxCards from allCards)
-    const configuredDeck = allCards.slice(0, maxCards);
-    
-    for (const part of parts) {
-        // Extract rank and suit (case-insensitive)
-        const match = part.toUpperCase().match(/^([A2-9]|10|[JQK])([♠♥♦♣])$/);
-        if (match) {
-            const rank = match[1];
-            const suitSymbol = match[2];
-            
-            // Create unique key for deduplication
-            const cardKey = `${rank}${suitSymbol}`;
-            
-            // Skip if already processed
-            if (seen.has(cardKey)) {
-                continue;
-            }
-            
-            // Find the card in the configured deck (not all cards)
-            const card = configuredDeck.find(c => c.rank === rank && c.suit === suitSymbol);
-            if (card) {
-                cards.push(card);
-                seen.add(cardKey);
-            }
-        }
-    }
-    
-    return cards;
-}
-
-// Mark cards as drawn
-function markCardsAsDrawn() {
-    const input = manualInput.value.trim();
-    if (!input) return;
-    
-    const cardsToMark = parseCardInput(input);
-    
-    if (cardsToMark.length === 0) {
-        alert('Invalid card format. Use format like: A♠, K♥, 10♦');
+    if (selectedIndex === '') {
+        alert('Please select a card from the dropdown');
         return;
     }
     
@@ -437,36 +415,29 @@ function markCardsAsDrawn() {
         return;
     }
     
-    let marked = 0;
-    for (const card of cardsToMark) {
-        // Check if we would exceed maxCards
-        if (drawnCards.length >= maxCards) {
-            break;
-        }
-        
-        // Check if card is still available
-        const index = availableCards.findIndex(c => 
-            c.rank === card.rank && c.suit === card.suit
-        );
-        
-        if (index !== -1) {
-            // Remove from available and add to drawn
-            availableCards.splice(index, 1);
-            drawnCards.push(card);
-            addToHistory(card);
-            marked++;
-        }
+    const index = parseInt(selectedIndex);
+    
+    if (index < 0 || index >= availableCards.length) {
+        alert('Invalid card selection');
+        return;
     }
     
-    if (marked > 0) {
-        updateStats();
-        needsRedraw = true;
-        drawWheel();
-        manualInput.value = '';
-        alert(`Marked ${marked} card(s) as drawn`);
-    } else {
-        alert('No valid available cards found to mark');
-    }
+    // Get the card and remove it from available cards
+    const card = availableCards[index];
+    availableCards.splice(index, 1);
+    drawnCards.push(card);
+    addToHistory(card);
+    
+    // Update UI
+    updateStats();
+    needsRedraw = true;
+    drawWheel();
+    
+    // Reset the select dropdown
+    cardSelect.value = '';
+    
+    // Show success feedback
+    alert(`Marked ${card.display} as drawn`);
 }
 
 // Reset the game
@@ -534,14 +505,7 @@ spinButton.addEventListener('click', spin);
 resetButton.addEventListener('click', resetGame);
 cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
-markCardsBtn.addEventListener('click', markCardsAsDrawn);
-
-// Allow Enter key on manual input
-manualInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        markCardsAsDrawn();
-    }
-});
+markSelectedBtn.addEventListener('click', markSelectedCardAsDrawn);
 
 // Handle responsive canvas sizing
 function resizeCanvas() {
