@@ -35,6 +35,8 @@ const resultCard = document.getElementById('resultCard');
 const resultText = document.getElementById('resultText');
 const cardCountSelect = document.getElementById('cardCount');
 const customCardCountInput = document.getElementById('customCardCount');
+const cardSelect = document.getElementById('cardSelect');
+const markSelectedBtn = document.getElementById('markSelectedBtn');
 const manualInput = document.getElementById('manualInput');
 const markCardsBtn = document.getElementById('markCardsBtn');
 const resetButton = document.getElementById('resetButton');
@@ -44,9 +46,9 @@ const drawnCountSpan = document.getElementById('drawnCount');
 
 // Validate required elements exist
 if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
-    !cardCountSelect || !customCardCountInput || !manualInput || 
-    !markCardsBtn || !resetButton || !cardHistoryDiv || 
-    !remainingCountSpan || !drawnCountSpan) {
+    !cardCountSelect || !customCardCountInput || !cardSelect ||
+    !markSelectedBtn || !manualInput || !markCardsBtn || !resetButton || 
+    !cardHistoryDiv || !remainingCountSpan || !drawnCountSpan) {
     console.error('Required DOM elements not found');
     throw new Error('Failed to initialize game: Missing required elements');
 }
@@ -353,6 +355,23 @@ function updateStats() {
     
     // Update canvas aria-label to reflect current card count
     canvas.setAttribute('aria-label', `Spin wheel with ${availableCards.length} playing cards`);
+    
+    // Update the card select dropdown
+    updateCardSelect();
+}
+
+// Update the card select dropdown with available cards
+function updateCardSelect() {
+    // Clear existing options except the first one
+    cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+    
+    // Add options for all available cards
+    availableCards.forEach((card, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        cardSelect.appendChild(option);
+    });
 }
 
 // Add card to history
@@ -469,6 +488,37 @@ function markCardsAsDrawn() {
     }
 }
 
+// Mark selected card as drawn
+function markSelectedCardAsDrawn() {
+    const selectedIndex = cardSelect.value;
+    
+    if (selectedIndex === '') {
+        alert('Please select a card from the dropdown');
+        return;
+    }
+    
+    const index = parseInt(selectedIndex);
+    
+    if (index < 0 || index >= availableCards.length) {
+        alert('Invalid card selection');
+        return;
+    }
+    
+    // Get the card and remove it from available cards
+    const card = availableCards[index];
+    availableCards.splice(index, 1);
+    drawnCards.push(card);
+    addToHistory(card);
+    
+    // Update UI
+    updateStats();
+    needsRedraw = true;
+    drawWheel();
+    
+    // Reset the select dropdown
+    cardSelect.value = '';
+}
+
 // Reset the game
 function resetGame() {
     // Reset to initial card count based on config
@@ -534,6 +584,7 @@ spinButton.addEventListener('click', spin);
 resetButton.addEventListener('click', resetGame);
 cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
+markSelectedBtn.addEventListener('click', markSelectedCardAsDrawn);
 markCardsBtn.addEventListener('click', markCardsAsDrawn);
 
 // Allow Enter key on manual input

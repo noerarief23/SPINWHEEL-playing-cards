@@ -26,7 +26,15 @@
                 <input type="number" id="customCardCount" class="hidden" min="1" max="52" value="10">
             </div>
             <div class="config-item">
-                <label for="manualInput">Mark cards as drawn:</label>
+                <label for="cardSelect">Mark cards as drawn:</label>
+                <select id="cardSelect" aria-describedby="cardSelectHelp">
+                    <option value="">-- Select a card --</option>
+                </select>
+                <button id="markSelectedBtn" class="mark-button" aria-label="Mark selected card as drawn">Mark Selected</button>
+                <span id="cardSelectHelp" class="sr-only">Select a card from the dropdown to mark as drawn</span>
+            </div>
+            <div class="config-item">
+                <label for="manualInput">Or enter manually:</label>
                 <input type="text" id="manualInput" placeholder="e.g., A♠, K♥, 10♦" aria-describedby="manualInputHelp">
                 <button id="markCardsBtn" class="mark-button" aria-label="Mark entered cards as drawn">Mark</button>
                 <span id="manualInputHelp" class="sr-only">Enter cards separated by commas. Example: A♠, K♥, 10♦</span>
