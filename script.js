@@ -244,11 +244,14 @@ function spin(isRetry = false) {
         if (progress < 1) {
             requestAnimationFrame(animate);
         } else {
-            // Normalize rotation
-            rotation = rotation % (2 * Math.PI);
+            // Normalize rotation to positive value
+            rotation = ((rotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
             
             // Determine winning card (pointer at top points to -π/2)
-            const pointerAngle = (2 * Math.PI - rotation - Math.PI / 2) % (2 * Math.PI);
+            let pointerAngle = (2 * Math.PI - rotation - Math.PI / 2) % (2 * Math.PI);
+            // Ensure positive angle
+            if (pointerAngle < 0) pointerAngle += 2 * Math.PI;
+            
             const segmentAngle = (2 * Math.PI) / availableCards.length;
             const winningIndex = Math.floor(pointerAngle / segmentAngle) % availableCards.length;
             currentCard = availableCards[winningIndex];
