@@ -62,6 +62,7 @@ const MAX_RETRIES = 3;
 let audioContext = null;
 let spinningSound = null;
 let spinningGainNode = null;
+let spinningFilterNode = null;
 let spinningStopTimeout = null;
 
 // Initialize audio context on first user interaction
@@ -82,6 +83,7 @@ function createSpinningSound() {
     const BEATS_PER_BUFFER = 16; // Number of drum hits per buffer
     const DRUM_HIT_DURATION_RATIO = 0.1; // Portion of beat cycle for drum hit
     const ENVELOPE_DECAY_RATE = 30; // Higher = faster decay
+    const ATTACK_TIME_RATIO = 0.005; // Short attack to avoid clicks (0.5% of beat)
     const BASS_FREQUENCY = 80; // Hz - bass drum fundamental frequency
     const NOISE_MIX = 0.6; // Noise (snare) contribution to final sound
     const BASS_MIX = 0.4; // Bass contribution to final sound
@@ -91,7 +93,7 @@ function createSpinningSound() {
     const OVERALL_VOLUME = 0.25;
     
     // Create a drum roll effect using noise and filters
-    const bufferSize = ctx.sampleRate * BUFFER_DURATION;
+    const bufferSize = Math.floor(ctx.sampleRate * BUFFER_DURATION);
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     
@@ -101,10 +103,17 @@ function createSpinningSound() {
         const beatPosition = (i / bufferSize) * BEATS_PER_BUFFER;
         const beatPhase = beatPosition % 1;
         
-        // Create drum hit envelope - quick attack and decay
+        // Create drum hit envelope with short attack and decay
         let envelope = 0;
         if (beatPhase < DRUM_HIT_DURATION_RATIO) {
-            envelope = Math.exp(-beatPhase * ENVELOPE_DECAY_RATE);
+            // Add short attack ramp to avoid clicks
+            if (beatPhase < ATTACK_TIME_RATIO) {
+                // Linear attack from 0 to 1 over ATTACK_TIME_RATIO
+                const attackProgress = beatPhase / ATTACK_TIME_RATIO;
+                envelope = attackProgress * Math.exp(-beatPhase * ENVELOPE_DECAY_RATE);
+            } else {
+                envelope = Math.exp(-beatPhase * ENVELOPE_DECAY_RATE);
+            }
         }
         
         // Add some noise for snare-like texture
@@ -138,9 +147,7 @@ function createSpinningSound() {
     
     source.start();
     
-    // Note: Property named 'oscillator' for backward compatibility with existing code
-    // even though this is now a BufferSourceNode, not an OscillatorNode
-    return { oscillator: source, gainNode };
+    return { source, gainNode, filter };
 }
 
 // Play spinning sound
@@ -152,8 +159,9 @@ function playSpinningSound() {
         }
         
         const sound = createSpinningSound();
-        spinningSound = sound.oscillator;
+        spinningSound = sound.source;
         spinningGainNode = sound.gainNode;
+        spinningFilterNode = sound.filter;
         
         // The drum roll sound loops continuously during the spin
         // No frequency modulation needed as this is a buffer-based sound
@@ -174,22 +182,39 @@ function stopSpinningSound() {
             
             const now = audioContext.currentTime;
             const currentSound = spinningSound;
+            const currentGain = spinningGainNode;
+            const currentFilter = spinningFilterNode;
             
             // Fade out over 0.5 seconds
             spinningGainNode.gain.setValueAtTime(spinningGainNode.gain.value, now);
             spinningGainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
             
-            // Stop oscillator after fade out
+            // Stop and disconnect nodes after fade out
             spinningStopTimeout = setTimeout(() => {
                 // Only stop if this is still the current sound
                 if (spinningSound === currentSound) {
                     try {
                         currentSound.stop();
+                        currentSound.disconnect();
                     } catch (e) {
-                        // Oscillator may already be stopped
+                        // Source may already be stopped
                     }
+                    
+                    // Disconnect filter and gain nodes
+                    try {
+                        if (currentFilter) {
+                            currentFilter.disconnect();
+                        }
+                        if (currentGain) {
+                            currentGain.disconnect();
+                        }
+                    } catch (e) {
+                        // Nodes may already be disconnected
+                    }
+                    
                     spinningSound = null;
                     spinningGainNode = null;
+                    spinningFilterNode = null;
                 }
                 spinningStopTimeout = null;
             }, 500);
