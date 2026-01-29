@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%);
+    background: #000000;
     color: #ffffff;
     min-height: 100vh;
     overflow-x: hidden;
@@ -31,59 +31,28 @@ header {
 .neon-title {
     font-size: 3rem;
     font-weight: bold;
-    color: #fff;
-    text-shadow: 
-        0 0 10px #ff00ff,
-        0 0 20px #ff00ff,
-        0 0 30px #ff00ff,
-        0 0 40px #00ffff,
-        0 0 70px #00ffff,
-        0 0 80px #00ffff;
-    animation: glow 2s ease-in-out infinite alternate;
+    color: #ffffff;
     margin-bottom: 10px;
-}
-
-@keyframes glow {
-    from {
-        text-shadow: 
-            0 0 10px #ff00ff,
-            0 0 20px #ff00ff,
-            0 0 30px #ff00ff,
-            0 0 40px #00ffff,
-            0 0 70px #00ffff,
-            0 0 80px #00ffff;
-    }
-    to {
-        text-shadow: 
-            0 0 20px #ff00ff,
-            0 0 30px #ff00ff,
-            0 0 40px #ff00ff,
-            0 0 50px #00ffff,
-            0 0 80px #00ffff,
-            0 0 90px #00ffff;
-    }
 }
 
 .subtitle {
     font-size: 1.2rem;
-    color: #ffaa00;
-    text-shadow: 0 0 10px #ffaa00;
+    color: #999999;
 }
 
 /* Config Panel */
 .config-panel {
     width: 100%;
     max-width: 1000px;
-    background: rgba(26, 0, 51, 0.5);
-    border: 2px solid #ff00ff;
-    border-radius: 15px;
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
     justify-content: center;
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
 }
 
 .hidden {
@@ -110,17 +79,17 @@ header {
 }
 
 .config-item label {
-    color: #ffaa00;
-    font-weight: bold;
+    color: #ffffff;
+    font-weight: normal;
     white-space: nowrap;
 }
 
 .config-item select,
 .config-item input[type="number"],
 .config-item input[type="text"] {
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid #00ffff;
-    border-radius: 8px;
+    background: #000000;
+    border: 1px solid #666666;
+    border-radius: 4px;
     padding: 8px 12px;
     color: #fff;
     font-size: 1rem;
@@ -132,19 +101,18 @@ header {
 }
 
 .mark-button {
-    background: linear-gradient(135deg, #00ffff 0%, #0099ff 100%);
-    border: none;
-    border-radius: 8px;
+    background: #333333;
+    border: 1px solid #666666;
+    border-radius: 4px;
     padding: 8px 20px;
     color: #fff;
-    font-weight: bold;
+    font-weight: normal;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .mark-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    background: #444444;
 }
 
 /* Main Content Layout */
@@ -206,7 +174,6 @@ main {
     max-width: 100%;
     max-height: 100%;
     display: block;
-    filter: drop-shadow(0 0 20px rgba(255, 0, 255, 0.5));
     transition: transform 0.1s ease-out;
 }
 
@@ -219,8 +186,7 @@ main {
     height: 0;
     border-left: 20px solid transparent;
     border-right: 20px solid transparent;
-    border-top: 40px solid #ffaa00;
-    filter: drop-shadow(0 0 10px #ffaa00);
+    border-top: 40px solid #ffffff;
     z-index: 10;
 }
 
@@ -233,12 +199,11 @@ main {
 
 .result-card {
     display: inline-block;
-    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-    border-radius: 15px;
+    background: #1a1a1a;
+    border-radius: 8px;
     padding: 20px 30px;
     min-width: 150px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    border: 3px solid #ffaa00;
+    border: 1px solid #666666;
     opacity: 0;
     transform: scale(0.8);
     transition: all 0.3s ease;
@@ -252,7 +217,7 @@ main {
 .card-value {
     font-size: 3rem;
     font-weight: bold;
-    color: #000;
+    color: #ffffff;
 }
 
 .card-suit {
@@ -261,47 +226,40 @@ main {
 
 .result-card.red .card-value,
 .result-card.red .card-suit {
-    color: #ff0000;
+    color: #ffffff;
 }
 
 .result-card.black .card-value,
 .result-card.black .card-suit {
-    color: #000000;
+    color: #ffffff;
 }
 
 .result-text {
     font-size: 1.5rem;
-    color: #ffaa00;
-    text-shadow: 0 0 10px #ffaa00;
+    color: #999999;
     margin-top: 15px;
-    font-weight: bold;
+    font-weight: normal;
 }
 
 /* Spin Button */
 .spin-button {
     position: relative;
-    background: linear-gradient(135deg, #ff00ff 0%, #00ffff 100%);
-    border: none;
-    border-radius: 50px;
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
     padding: 20px 60px;
     font-size: 2rem;
     font-weight: bold;
-    color: #fff;
+    color: #000000;
     cursor: pointer;
     overflow: hidden;
-    box-shadow: 
-        0 0 20px rgba(255, 0, 255, 0.5),
-        0 0 40px rgba(0, 255, 255, 0.5);
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 3px;
 }
 
 .spin-button:hover {
-    transform: scale(1.05);
-    box-shadow: 
-        0 0 30px rgba(255, 0, 255, 0.8),
-        0 0 50px rgba(0, 255, 255, 0.8);
+    background: #cccccc;
 }
 
 .spin-button:active {
@@ -320,42 +278,27 @@ main {
 }
 
 .button-glow {
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.3), 
-        transparent);
-    transition: left 0.5s ease;
-}
-
-.spin-button:hover .button-glow {
-    left: 100%;
+    display: none;
 }
 
 /* History Panel */
 .history-panel {
     width: 100%;
     max-width: 600px;
-    background: rgba(26, 0, 51, 0.7);
-    border: 2px solid #00ffff;
-    border-radius: 15px;
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
     max-height: 400px;
     display: flex;
     flex-direction: column;
 }
 
 .history-panel h3 {
-    color: #00ffff;
+    color: #ffffff;
     text-align: center;
     margin-bottom: 15px;
     font-size: 1.3rem;
-    text-shadow: 0 0 10px #00ffff;
 }
 
 .card-history-list {
@@ -366,9 +309,9 @@ main {
 }
 
 .history-item {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid #666;
-    border-radius: 8px;
+    background: #000000;
+    border: 1px solid #333333;
+    border-radius: 4px;
     padding: 10px;
     margin-bottom: 8px;
     display: flex;
@@ -396,32 +339,32 @@ main {
 }
 
 .history-item-card.red {
-    color: #ff0000;
+    color: #ffffff;
 }
 
 .history-item-card.black {
-    color: #fff;
+    color: #ffffff;
 }
 
 .history-item-name {
-    color: #ccc;
+    color: #999999;
     font-size: 0.9rem;
 }
 
 .stats {
-    border-top: 1px solid #666;
+    border-top: 1px solid #333333;
     padding-top: 15px;
     text-align: center;
 }
 
 .stats p {
     margin: 5px 0;
-    color: #ffaa00;
-    font-weight: bold;
+    color: #ffffff;
+    font-weight: normal;
 }
 
 .stats span {
-    color: #00ffff;
+    color: #999999;
     font-size: 1.2rem;
 }
 
@@ -430,15 +373,14 @@ main {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    background: linear-gradient(135deg, #ff5722 0%, #ff1744 100%);
-    border: none;
-    border-radius: 50px;
+    background: #333333;
+    border: 1px solid #666666;
+    border-radius: 4px;
     padding: 15px 30px;
     color: #fff;
     font-size: 1.2rem;
-    font-weight: bold;
+    font-weight: normal;
     cursor: pointer;
-    box-shadow: 0 0 20px rgba(255, 23, 68, 0.5);
     transition: all 0.3s ease;
     z-index: 100;
     display: flex;
@@ -447,8 +389,7 @@ main {
 }
 
 .reset-button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 30px rgba(255, 23, 68, 0.8);
+    background: #444444;
 }
 
 .reset-button span:first-child {
@@ -459,7 +400,7 @@ main {
 footer {
     text-align: center;
     padding: 20px 0;
-    color: #888;
+    color: #666666;
     font-size: 0.9rem;
 }
 
@@ -518,7 +459,7 @@ footer {
     .wheel-pointer {
         border-left: 15px solid transparent;
         border-right: 15px solid transparent;
-        border-top: 30px solid #ffaa00;
+        border-top: 30px solid #ffffff;
     }
 
     .spin-button {
@@ -566,7 +507,7 @@ footer {
     .wheel-pointer {
         border-left: 12px solid transparent;
         border-right: 12px solid transparent;
-        border-top: 25px solid #ffaa00;
+        border-top: 25px solid #ffffff;
     }
 
     .spin-button {
@@ -606,6 +547,6 @@ footer {
     .wheel-pointer {
         border-left: 10px solid transparent;
         border-right: 10px solid transparent;
-        border-top: 20px solid #ffaa00;
+        border-top: 20px solid #ffffff;
     }
 }

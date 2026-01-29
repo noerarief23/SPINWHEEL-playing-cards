@@ -58,13 +58,19 @@ let currentCard = null;
 let retryCount = 0;
 const MAX_RETRIES = 3;
 
-// Segment colors (vibrant casino colors)
+// Segment colors (grayscale)
 const segmentColors = [
-    '#FF1744', '#9C27B0', '#3F51B5', '#2196F3',
-    '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
-    '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
-    '#FF5722'
+    '#1a1a1a', '#2a2a2a', '#3a3a3a', '#4a4a4a',
+    '#5a5a5a', '#6a6a6a', '#7a7a7a', '#8a8a8a',
+    '#999999', '#aaaaaa', '#bbbbbb', '#cccccc',
+    '#dddddd'
 ];
+// const segmentColors = [
+//     '#FF1744', '#9C27B0', '#3F51B5', '#2196F3',
+//     '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
+//     '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
+//     '#FF5722'
+// ];
 
 // Offscreen canvas for performance optimization
 let offscreenCanvas = null;
@@ -162,7 +168,7 @@ function prerenderWheel() {
     offscreenCtx.arc(0, 0, 30, 0, 2 * Math.PI);
     offscreenCtx.fillStyle = '#ffffff';
     offscreenCtx.fill();
-    offscreenCtx.strokeStyle = '#ffaa00';
+    offscreenCtx.strokeStyle = '#666666';
     offscreenCtx.lineWidth = 3;
     offscreenCtx.stroke();
 
@@ -327,7 +333,7 @@ function showResult() {
 
     // Update result text with card name
     const rankName = getRankName(currentCard.rank);
-    resultText.textContent = `You got: ${rankName} of ${currentCard.suitName}!`;
+    resultText.textContent = `${rankName} of ${currentCard.suitName}!`;
 }
 
 // Get full rank name
