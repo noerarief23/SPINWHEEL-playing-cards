@@ -497,6 +497,12 @@ function markSelectedCardAsDrawn() {
         return;
     }
     
+    // Check if we would exceed maxCards
+    if (drawnCards.length >= maxCards) {
+        alert('Cannot mark more cards. The configured deck limit has been reached.');
+        return;
+    }
+    
     const index = parseInt(selectedIndex);
     
     if (index < 0 || index >= availableCards.length) {
@@ -517,6 +523,9 @@ function markSelectedCardAsDrawn() {
     
     // Reset the select dropdown
     cardSelect.value = '';
+    
+    // Show success feedback
+    alert(`Marked ${card.display} as drawn`);
 }
 
 // Reset the game
