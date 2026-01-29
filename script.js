@@ -551,7 +551,7 @@ function resizeCanvas() {
         return;
     }
     
-    const size = Math.min(container.offsetWidth, container.offsetHeight, 500);
+    const size = Math.min(container.offsetWidth, container.offsetHeight);
 
     // Set the CSS size (logical size in CSS pixels)
     canvas.style.width = size + 'px';
