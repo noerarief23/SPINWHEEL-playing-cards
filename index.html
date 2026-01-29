@@ -13,28 +13,6 @@
             <p class="subtitle">Spin the wheel and test your luck!</p>
         </header>
 
-        <!-- Config Panel -->
-        <div class="config-panel">
-            <div class="config-item">
-                <label for="cardCount">Cards to draw:</label>
-                <select id="cardCount">
-                    <option value="52">All Cards (52)</option>
-                    <option value="26">Half Deck (26)</option>
-                    <option value="13">Quarter Deck (13)</option>
-                    <option value="custom">Custom</option>
-                </select>
-                <input type="number" id="customCardCount" class="hidden" min="1" max="52" value="10">
-            </div>
-            <div class="config-item">
-                <label for="cardSelect">Mark cards as drawn:</label>
-                <select id="cardSelect" aria-describedby="cardSelectHelp">
-                    <option value="">-- Select a card --</option>
-                </select>
-                <button id="markSelectedBtn" class="mark-button" aria-label="Mark selected card as drawn">Mark Selected</button>
-                <span id="cardSelectHelp" class="sr-only">Select a card from the dropdown to mark as drawn</span>
-            </div>
-        </div>
-
         <div class="main-content">
             <main>
                 <div class="wheel-section">
@@ -59,8 +37,7 @@
                     </div>
                 </div>
             </main>
-
-            <!-- Right Panel: Card History -->
+            <!-- Card History -->
             <aside class="history-panel">
                 <h3>Card History</h3>
                 <div id="cardHistory" class="card-history-list"></div>
@@ -69,6 +46,28 @@
                     <p>Drawn: <span id="drawnCount">0</span></p>
                 </div>
             </aside>
+        </div>
+
+        <!-- Config Panel -->
+        <div class="config-panel">
+            <div class="config-item">
+                <label for="cardCount">Cards to draw:</label>
+                <select id="cardCount">
+                    <option value="52">All Cards (52)</option>
+                    <option value="26">Half Deck (26)</option>
+                    <option value="13">Quarter Deck (13)</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <input type="number" id="customCardCount" class="hidden" min="1" max="52" value="10">
+            </div>
+            <div class="config-item">
+                <label for="cardSelect">Mark cards as drawn:</label>
+                <select id="cardSelect" aria-describedby="cardSelectHelp">
+                    <option value="">-- Select a card --</option>
+                </select>
+                <button id="markSelectedBtn" class="mark-button" aria-label="Mark selected card as drawn">Mark Selected</button>
+                <span id="cardSelectHelp" class="sr-only">Select a card from the dropdown to mark as drawn</span>
+            </div>
         </div>
 
         <!-- Reset Button -->
