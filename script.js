@@ -542,10 +542,23 @@ function resizeCanvas() {
 // Initialize
 window.addEventListener('resize', resizeCanvas);
 
-// Wait for DOM and layout to be ready
+// Wait for DOM and layout to be ready without relying on a hardcoded timeout
+function waitForLayout(callback) {
+    function attempt() {
+        const container = document.querySelector('.wheel-container');
+        if (container && container.offsetWidth > 0) {
+            callback();
+        } else {
+            requestAnimationFrame(attempt);
+        }
+    }
+
+    requestAnimationFrame(attempt);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
+    waitForLayout(() => {
         resizeCanvas();
         updateStats();
-    }, 100);
+    });
 });
