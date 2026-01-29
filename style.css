@@ -171,8 +171,9 @@ main {
 /* Wheel Container */
 .wheel-container {
     position: relative;
-    width: 600px;
-    height: 600px;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1 / 1;
     margin: 20px auto;
     padding: 0;
     display: flex;
@@ -484,8 +485,7 @@ footer {
     }
 
     .wheel-container {
-        width: 350px;
-        height: 350px;
+        max-width: 350px;
         padding: 0;
     }
 
@@ -529,8 +529,7 @@ footer {
     }
 
     .wheel-container {
-        width: 280px;
-        height: 280px;
+        max-width: 280px;
         padding: 0;
     }
     
@@ -570,8 +569,7 @@ footer {
     }
     
     .wheel-container {
-        width: 260px;
-        height: 260px;
+        max-width: 260px;
         padding: 0;
     }
     
