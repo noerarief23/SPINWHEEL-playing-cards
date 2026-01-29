@@ -174,7 +174,7 @@ main {
     width: 500px;
     height: 560px;
     margin: 20px auto;
-    padding: 30px 20px;
+    padding: 30px 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -486,7 +486,7 @@ footer {
     .wheel-container {
         width: 350px;
         height: 410px;
-        padding: 30px 20px;
+        padding: 30px 0;
     }
 
     .wheel-pointer {
@@ -531,7 +531,7 @@ footer {
     .wheel-container {
         width: 280px;
         height: 340px;
-        padding: 30px 15px;
+        padding: 30px 0;
     }
     
     main {
@@ -572,7 +572,7 @@ footer {
     .wheel-container {
         width: 260px;
         height: 320px;
-        padding: 25px 10px;
+        padding: 25px 0;
     }
     
     main {
