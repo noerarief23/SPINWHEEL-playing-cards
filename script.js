@@ -37,8 +37,6 @@ const cardCountSelect = document.getElementById('cardCount');
 const customCardCountInput = document.getElementById('customCardCount');
 const cardSelect = document.getElementById('cardSelect');
 const markSelectedBtn = document.getElementById('markSelectedBtn');
-const manualInput = document.getElementById('manualInput');
-const markCardsBtn = document.getElementById('markCardsBtn');
 const resetButton = document.getElementById('resetButton');
 const cardHistoryDiv = document.getElementById('cardHistory');
 const remainingCountSpan = document.getElementById('remainingCount');
@@ -47,8 +45,8 @@ const drawnCountSpan = document.getElementById('drawnCount');
 // Validate required elements exist
 if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
     !cardCountSelect || !customCardCountInput || !cardSelect ||
-    !markSelectedBtn || !manualInput || !markCardsBtn || !resetButton || 
-    !cardHistoryDiv || !remainingCountSpan || !drawnCountSpan) {
+    !markSelectedBtn || !resetButton || !cardHistoryDiv || 
+    !remainingCountSpan || !drawnCountSpan) {
     console.error('Required DOM elements not found');
     throw new Error('Failed to initialize game: Missing required elements');
 }
@@ -402,92 +400,6 @@ function addToHistory(card) {
     cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
 }
 
-// Parse manual card input
-function parseCardInput(input) {
-    const cards = [];
-    const seen = new Set();
-    const parts = input.split(',').map(s => s.trim()).filter(s => s);
-    
-    // Get the configured deck (first maxCards from allCards)
-    const configuredDeck = allCards.slice(0, maxCards);
-    
-    for (const part of parts) {
-        // Extract rank and suit (case-insensitive)
-        const match = part.toUpperCase().match(/^([A2-9]|10|[JQK])([♠♥♦♣])$/);
-        if (match) {
-            const rank = match[1];
-            const suitSymbol = match[2];
-            
-            // Create unique key for deduplication
-            const cardKey = `${rank}${suitSymbol}`;
-            
-            // Skip if already processed
-            if (seen.has(cardKey)) {
-                continue;
-            }
-            
-            // Find the card in the configured deck (not all cards)
-            const card = configuredDeck.find(c => c.rank === rank && c.suit === suitSymbol);
-            if (card) {
-                cards.push(card);
-                seen.add(cardKey);
-            }
-        }
-    }
-    
-    return cards;
-}
-
-// Mark cards as drawn
-function markCardsAsDrawn() {
-    const input = manualInput.value.trim();
-    if (!input) return;
-    
-    const cardsToMark = parseCardInput(input);
-    
-    if (cardsToMark.length === 0) {
-        alert('Invalid card format. Use format like: A♠, K♥, 10♦');
-        return;
-    }
-    
-    // Check if we would exceed maxCards
-    if (drawnCards.length >= maxCards) {
-        alert('Cannot mark more cards. The configured deck limit has been reached.');
-        return;
-    }
-    
-    let marked = 0;
-    for (const card of cardsToMark) {
-        // Check if we would exceed maxCards
-        if (drawnCards.length >= maxCards) {
-            break;
-        }
-        
-        // Check if card is still available
-        const index = availableCards.findIndex(c => 
-            c.rank === card.rank && c.suit === card.suit
-        );
-        
-        if (index !== -1) {
-            // Remove from available and add to drawn
-            availableCards.splice(index, 1);
-            drawnCards.push(card);
-            addToHistory(card);
-            marked++;
-        }
-    }
-    
-    if (marked > 0) {
-        updateStats();
-        needsRedraw = true;
-        drawWheel();
-        manualInput.value = '';
-        alert(`Marked ${marked} card(s) as drawn`);
-    } else {
-        alert('No valid available cards found to mark');
-    }
-}
-
 // Mark selected card as drawn
 function markSelectedCardAsDrawn() {
     const selectedIndex = cardSelect.value;
@@ -594,14 +506,6 @@ resetButton.addEventListener('click', resetGame);
 cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
 markSelectedBtn.addEventListener('click', markSelectedCardAsDrawn);
-markCardsBtn.addEventListener('click', markCardsAsDrawn);
-
-// Allow Enter key on manual input
-manualInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        markCardsAsDrawn();
-    }
-});
 
 // Handle responsive canvas sizing
 function resizeCanvas() {
