@@ -150,11 +150,12 @@ header {
 /* Main Content Layout */
 .main-content {
     display: flex;
+    flex-direction: column;
     gap: 30px;
     width: 100%;
     max-width: 1200px;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
 }
 
 main {
@@ -312,13 +313,14 @@ main {
 
 /* History Panel */
 .history-panel {
-    width: 280px;
+    width: 100%;
+    max-width: 600px;
     background: rgba(26, 0, 51, 0.7);
     border: 2px solid #00ffff;
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-    max-height: 600px;
+    max-height: 400px;
     display: flex;
     flex-direction: column;
 }
@@ -470,7 +472,6 @@ footer {
     .history-panel {
         width: 100%;
         max-height: 300px;
-        order: -1;
     }
 
     .reset-button {
