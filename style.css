@@ -134,7 +134,7 @@ main {
     align-items: center;
     justify-content: center;
     padding: 30px 0;
-    /* min-height: 700px; */
+    min-height: 700px;
 }
 
 /* New wrapper for wheel and controls */
