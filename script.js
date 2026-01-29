@@ -189,8 +189,8 @@ function drawWheel() {
     ctx.rotate(rotation);
     ctx.translate(-centerX, -centerY);
     
-    // Draw the prerendered wheel
-    ctx.drawImage(offscreenCanvas, 0, 0);
+    // Draw the prerendered wheel at correct logical size
+    ctx.drawImage(offscreenCanvas, 0, 0, size, size);
 
     ctx.restore();
 }
@@ -514,8 +514,9 @@ function resizeCanvas() {
     let size = container.offsetWidth;
     
     // Fallback if offsetWidth is 0
+    const CONTAINER_PADDING = 40;
     if (size === 0) {
-        size = Math.min(window.innerWidth - 40, 600);
+        size = Math.min(window.innerWidth - CONTAINER_PADDING, 600);
     }
 
     // Set canvas CSS size (logical pixels)
@@ -540,18 +541,11 @@ function resizeCanvas() {
 
 // Initialize
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('load', () => {
-    // Wait for layout to be ready
+
+// Wait for DOM and layout to be ready
+document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         resizeCanvas();
         updateStats();
     }, 100);
 });
-
-// Also call on DOMContentLoaded for faster initial render
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(resizeCanvas, 50);
-});
-
-// Draw initial wheel
-drawWheel();
