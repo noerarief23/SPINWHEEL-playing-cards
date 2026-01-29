@@ -170,8 +170,8 @@ main {
 /* Wheel Container */
 .wheel-container {
     position: relative;
-    width: 450px;
-    height: 450px;
+    width: 500px;
+    height: 500px;
     margin: 20px auto;
     display: flex;
     align-items: center;
