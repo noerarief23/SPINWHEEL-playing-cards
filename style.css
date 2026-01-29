@@ -171,10 +171,10 @@ main {
 /* Wheel Container */
 .wheel-container {
     position: relative;
-    width: 500px;
-    height: 560px;
+    width: 600px;
+    height: 600px;
     margin: 20px auto;
-    padding: 30px 0;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -485,8 +485,8 @@ footer {
 
     .wheel-container {
         width: 350px;
-        height: 410px;
-        padding: 30px 0;
+        height: 350px;
+        padding: 0;
     }
 
     .wheel-pointer {
@@ -530,8 +530,8 @@ footer {
 
     .wheel-container {
         width: 280px;
-        height: 340px;
-        padding: 30px 0;
+        height: 280px;
+        padding: 0;
     }
     
     main {
@@ -571,8 +571,8 @@ footer {
     
     .wheel-container {
         width: 260px;
-        height: 320px;
-        padding: 25px 0;
+        height: 260px;
+        padding: 0;
     }
     
     main {
