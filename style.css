@@ -159,7 +159,7 @@ main {
 .wheel-container {
     position: relative;
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
     aspect-ratio: 1 / 1;
     margin: 20px auto;
     padding: 0;
@@ -227,7 +227,7 @@ main {
 
 .result-card.red .card-value,
 .result-card.red .card-suit {
-    color: #ffffff;
+    color: #ff0000;
 }
 
 .result-card.black .card-value,
@@ -340,7 +340,7 @@ main {
 }
 
 .history-item-card.red {
-    color: #ffffff;
+    color: #ff0000;
 }
 
 .history-item-card.black {

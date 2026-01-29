@@ -58,201 +58,53 @@ let currentCard = null;
 let retryCount = 0;
 const MAX_RETRIES = 3;
 
-// Audio context for sound effects
-let audioContext = null;
-let spinningSound = null;
-let spinningGainNode = null;
-let spinningFilterNode = null;
-let spinningStopTimeout = null;
+// Audio for sound effects
+let spinningAudio = null;
 
-// Initialize audio context on first user interaction
-function initAudioContext() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    return audioContext;
-}
-
-// Create spinning sound effect using Web Audio API
-// Creates a drum roll / suspense style sound
-function createSpinningSound() {
-    const ctx = initAudioContext();
+// Preload audio files
+function preloadAudio() {
+    // Using local drum roll sound file
+    // Download a drum roll MP3 and save it as 'drumroll.mp3' in your project folder
+    spinningAudio = new Audio('./drumroll.mp3');
+    spinningAudio.volume = 0.6;
+    spinningAudio.loop = false;
     
-    // Drum roll sound parameters
-    const BUFFER_DURATION = 0.5; // 0.5 second buffer for drum pattern
-    const BEATS_PER_BUFFER = 16; // Number of drum hits per buffer
-    const DRUM_HIT_DURATION_RATIO = 0.1; // Portion of beat cycle for drum hit
-    const ENVELOPE_DECAY_RATE = 30; // Higher = faster decay
-    const ATTACK_TIME_RATIO = 0.005; // Short attack to avoid clicks (0.5% of beat)
-    const BASS_FREQUENCY = 80; // Hz - bass drum fundamental frequency
-    const NOISE_MIX = 0.6; // Noise (snare) contribution to final sound
-    const BASS_MIX = 0.4; // Bass contribution to final sound
-    const NOISE_AMPLITUDE = 0.7;
-    const BASS_AMPLITUDE = 0.5;
-    const FILTER_CUTOFF = 1200; // Hz - low-pass filter cutoff frequency
-    const OVERALL_VOLUME = 0.25;
-    
-    // Create a drum roll effect using noise and filters
-    const bufferSize = Math.floor(ctx.sampleRate * BUFFER_DURATION);
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    
-    // Create drum roll pattern using filtered noise
-    for (let i = 0; i < bufferSize; i++) {
-        // Create drum hits at regular intervals (fast roll)
-        const beatPosition = (i / bufferSize) * BEATS_PER_BUFFER;
-        const beatPhase = beatPosition % 1;
-        
-        // Create drum hit envelope with short attack and decay
-        let envelope = 0;
-        if (beatPhase < DRUM_HIT_DURATION_RATIO) {
-            // Add short attack ramp to avoid clicks
-            if (beatPhase < ATTACK_TIME_RATIO) {
-                // Linear attack from 0 to 1 over ATTACK_TIME_RATIO
-                const attackProgress = beatPhase / ATTACK_TIME_RATIO;
-                envelope = attackProgress * Math.exp(-beatPhase * ENVELOPE_DECAY_RATE);
-            } else {
-                envelope = Math.exp(-beatPhase * ENVELOPE_DECAY_RATE);
-            }
-        }
-        
-        // Add some noise for snare-like texture
-        const noise = (Math.random() * 2 - 1) * NOISE_AMPLITUDE;
-        
-        // Low frequency component for bass drum feel
-        const bass = Math.sin(2 * Math.PI * BASS_FREQUENCY * i / ctx.sampleRate) * BASS_AMPLITUDE;
-        
-        data[i] = (noise * envelope * NOISE_MIX) + (bass * envelope * BASS_MIX);
-    }
-    
-    // Create buffer source that will loop
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    
-    // Add a low-pass filter for warmth
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(FILTER_CUTOFF, ctx.currentTime);
-    filter.Q.setValueAtTime(1, ctx.currentTime);
-    
-    // Create gain node for volume control
-    const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(OVERALL_VOLUME, ctx.currentTime);
-    
-    // Connect the audio graph
-    source.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    
-    source.start();
-    
-    return { source, gainNode, filter };
+    // Handle audio load error
+    spinningAudio.addEventListener('error', () => {
+        console.warn('Drum roll audio file not found. Please add drumroll.mp3 to your project folder.');
+    });
 }
 
 // Play spinning sound
 function playSpinningSound() {
     try {
-        // Stop any existing spinning sound before creating a new one
-        if (spinningSound) {
-            stopSpinningSound();
+        if (spinningAudio) {
+            spinningAudio.currentTime = 0;
+            spinningAudio.play().catch(err => console.error('Error playing spin sound:', err));
         }
-        
-        const sound = createSpinningSound();
-        spinningSound = sound.source;
-        spinningGainNode = sound.gainNode;
-        spinningFilterNode = sound.filter;
-        
-        // The drum roll sound loops continuously during the spin
-        // No frequency modulation needed as this is a buffer-based sound
     } catch (error) {
         console.error('Error playing spinning sound:', error);
     }
 }
 
-// Stop spinning sound with fade out
+// Stop spinning sound
 function stopSpinningSound() {
-    if (spinningSound && spinningGainNode && audioContext) {
-        try {
-            // Clear any existing timeout
-            if (spinningStopTimeout) {
-                clearTimeout(spinningStopTimeout);
-                spinningStopTimeout = null;
-            }
-            
-            const now = audioContext.currentTime;
-            const currentSound = spinningSound;
-            const currentGain = spinningGainNode;
-            const currentFilter = spinningFilterNode;
-            
-            // Fade out over 0.5 seconds
-            spinningGainNode.gain.setValueAtTime(spinningGainNode.gain.value, now);
-            spinningGainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            
-            // Stop and disconnect nodes after fade out
-            spinningStopTimeout = setTimeout(() => {
-                // Only stop if this is still the current sound
-                if (spinningSound === currentSound) {
-                    try {
-                        currentSound.stop();
-                        currentSound.disconnect();
-                    } catch (e) {
-                        // Source may already be stopped
-                    }
-                    
-                    // Disconnect filter and gain nodes
-                    try {
-                        if (currentFilter) {
-                            currentFilter.disconnect();
-                        }
-                        if (currentGain) {
-                            currentGain.disconnect();
-                        }
-                    } catch (e) {
-                        // Nodes may already be disconnected
-                    }
-                    
-                    spinningSound = null;
-                    spinningGainNode = null;
-                    spinningFilterNode = null;
-                }
-                spinningStopTimeout = null;
-            }, 500);
-        } catch (error) {
-            console.error('Error stopping spinning sound:', error);
+    try {
+        if (spinningAudio) {
+            spinningAudio.pause();
+            spinningAudio.currentTime = 0;
         }
+    } catch (error) {
+        console.error('Error stopping spinning sound:', error);
     }
 }
 
 // Play result/win sound effect
 function playResultSound() {
     try {
-        const ctx = initAudioContext();
-        
-        // Create a pleasant win sound with multiple notes
-        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 (C major chord)
-        
-        notes.forEach((frequency, index) => {
-            const oscillator = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(ctx.destination);
-            
-            const now = ctx.currentTime;
-            const startTime = now + (index * 0.1);
-            
-            // Attack and decay envelope
-            gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
-            
-            oscillator.start(startTime);
-            oscillator.stop(startTime + 0.5);
-        });
+        const winAudio = new Audio('./drumrollresult.mp3');
+        winAudio.volume = 0.5;
+        winAudio.play().catch(err => console.error('Error playing result sound:', err));
     } catch (error) {
         console.error('Error playing result sound:', error);
     }
@@ -359,8 +211,9 @@ function resizeFireworksCanvas() {
         fireworksCanvas.width = window.innerWidth * dpr;
         fireworksCanvas.height = window.innerHeight * dpr;
         
-        // Scale context for high DPI displays
+        // Reset transform and scale context for high DPI displays
         if (fireworksCtx) {
+            fireworksCtx.setTransform(1, 0, 0, 1, 0, 0);
             fireworksCtx.scale(dpr, dpr);
         }
     }
@@ -453,18 +306,18 @@ function stopFireworksAnimation() {
 }
 
 // Segment colors (grayscale)
-const segmentColors = [
-    '#1a1a1a', '#2a2a2a', '#3a3a3a', '#4a4a4a',
-    '#5a5a5a', '#6a6a6a', '#7a7a7a', '#8a8a8a',
-    '#999999', '#aaaaaa', '#bbbbbb', '#cccccc',
-    '#dddddd'
-];
 // const segmentColors = [
-//     '#FF1744', '#9C27B0', '#3F51B5', '#2196F3',
-//     '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
-//     '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
-//     '#FF5722'
+//     '#1a1a1a', '#2a2a2a', '#3a3a3a', '#4a4a4a',
+//     '#5a5a5a', '#6a6a6a', '#7a7a7a', '#8a8a8a',
+//     '#999999', '#aaaaaa', '#bbbbbb', '#cccccc',
+//     '#dddddd'
 // ];
+const segmentColors = [
+    '#FF1744', '#9C27B0', '#3F51B5', '#2196F3',
+    '#00BCD4', '#009688', '#4CAF50', '#8BC34A',
+    '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
+    '#FF5722'
+];
 
 // Offscreen canvas for performance optimization
 let offscreenCanvas = null;
@@ -909,8 +762,6 @@ function handleCardCountChange() {
 
 // Event listeners
 spinButton.addEventListener('click', () => {
-    // Initialize audio context on first user interaction
-    initAudioContext();
     spin();
 });
 resetButton.addEventListener('click', resetGame);
@@ -932,7 +783,7 @@ function resizeCanvas() {
     // Fallback if offsetWidth is 0
     const CONTAINER_PADDING = 40;
     if (size === 0) {
-        size = Math.min(window.innerWidth - CONTAINER_PADDING, 600);
+        size = Math.min(window.innerWidth - CONTAINER_PADDING, 800);
     }
 
     // Set canvas CSS size (logical pixels)
@@ -958,14 +809,22 @@ function resizeCanvas() {
 // Initialize
 window.addEventListener('resize', resizeCanvas);
 
-// Wait for DOM and layout to be ready without relying on a hardcoded timeout
+// Wait for DOM and layout to be ready
 function waitForLayout(callback) {
+    let attempts = 0;
+    const maxAttempts = 60; // Max 1 second wait
+    
     function attempt() {
         const container = document.querySelector('.wheel-container');
         if (container && container.offsetWidth > 0) {
             callback();
-        } else {
+        } else if (attempts < maxAttempts) {
+            attempts++;
             requestAnimationFrame(attempt);
+        } else {
+            // Force callback even if container width is 0
+            console.warn('Container width still 0 after max attempts, forcing resize');
+            callback();
         }
     }
 
@@ -973,6 +832,11 @@ function waitForLayout(callback) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    preloadAudio();
+    // Call resize immediately
+    resizeCanvas();
+    updateStats();
+    // Also wait for proper layout
     waitForLayout(() => {
         resizeCanvas();
         updateStats();
