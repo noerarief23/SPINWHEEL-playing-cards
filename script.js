@@ -98,6 +98,11 @@ function createSpinningSound() {
 // Play spinning sound
 function playSpinningSound() {
     try {
+        // Stop any existing spinning sound before creating a new one
+        if (spinningSound) {
+            stopSpinningSound();
+        }
+        
         const sound = createSpinningSound();
         spinningSound = sound.oscillator;
         spinningGainNode = sound.gainNode;
@@ -105,7 +110,6 @@ function playSpinningSound() {
         // Modulate frequency during spin for dynamic effect
         const ctx = audioContext;
         const now = ctx.currentTime;
-        spinningSound.frequency.setValueAtTime(100, now);
         spinningSound.frequency.exponentialRampToValueAtTime(200, now + 1);
         spinningSound.frequency.exponentialRampToValueAtTime(150, now + 2);
     } catch (error) {
@@ -295,6 +299,12 @@ function resizeFireworksCanvas() {
 // Start fireworks animation
 function startFireworksAnimation() {
     createFireworksCanvas();
+    
+    // Cancel any existing animation to prevent double-speed rendering
+    if (fireworksAnimationId) {
+        cancelAnimationFrame(fireworksAnimationId);
+        fireworksAnimationId = null;
+    }
     
     // Clear any existing timeouts
     if (fireworksAutoStopTimeout) {
