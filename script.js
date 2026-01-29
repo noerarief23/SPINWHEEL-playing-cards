@@ -60,6 +60,8 @@ canvas.height = canvasSize;
 let rotation = 0;
 let isSpinning = false;
 let currentCard = null;
+let retryCount = 0;
+const MAX_RETRIES = 3;
 
 // Segment colors (vibrant casino colors)
 const segmentColors = [
@@ -202,13 +204,18 @@ function drawWheel() {
 }
 
 // Spin animation
-function spin() {
+function spin(isRetry = false) {
     if (isSpinning) return;
 
     // Check if there are available cards
     if (availableCards.length === 0) {
         resultText.textContent = 'No more cards available! Click the Reset button to start over.';
         return;
+    }
+
+    // Reset retry count if this is a new spin (not a retry)
+    if (!isRetry) {
+        retryCount = 0;
     }
 
     isSpinning = true;
@@ -257,9 +264,27 @@ function spin() {
             // Validate currentCard before processing
             if (!currentCard) {
                 console.error(`Invalid card at index ${winningIndex}: availableCards may have been modified during spin`);
-                isSpinning = false;
-                spinButton.disabled = false;
-                return;
+                
+                // Retry logic
+                if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    console.log(`Retrying spin... Attempt ${retryCount}/${MAX_RETRIES}`);
+                    isSpinning = false;
+                    
+                    // Wait a bit before retrying (keep button disabled during retry)
+                    setTimeout(() => {
+                        spin(true);
+                    }, 500);
+                    return;
+                } else {
+                    // Max retries reached - inform user to spin manually
+                    console.error('Max retries reached. Please try spinning manually.');
+                    resultText.textContent = `Spin failed after ${MAX_RETRIES} attempts. Please try spinning again manually.`;
+                    isSpinning = false;
+                    spinButton.disabled = false;
+                    retryCount = 0; // Reset for next attempt
+                    return;
+                }
             }
 
             // Remove the drawn card from available cards
