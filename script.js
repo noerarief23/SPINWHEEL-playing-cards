@@ -73,26 +73,61 @@ function initAudioContext() {
 }
 
 // Create spinning sound effect using Web Audio API
+// Creates a drum roll / suspense style sound
 function createSpinningSound() {
     const ctx = initAudioContext();
     
-    // Create oscillator for spinning sound
-    const oscillator = ctx.createOscillator();
+    // Create a drum roll effect using noise and filters
+    // We'll create a looping drum roll pattern
+    const bufferSize = ctx.sampleRate * 0.5; // 0.5 second buffer for drum pattern
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    // Create drum roll pattern using filtered noise
+    for (let i = 0; i < bufferSize; i++) {
+        // Create drum hits at regular intervals (fast roll)
+        const beatPosition = (i / bufferSize) * 16; // 16 beats per buffer
+        const beatPhase = beatPosition % 1;
+        
+        // Create drum hit envelope - quick attack and decay
+        let envelope = 0;
+        if (beatPhase < 0.1) {
+            envelope = Math.exp(-beatPhase * 30); // Fast decay
+        }
+        
+        // Add some noise for snare-like texture
+        const noise = (Math.random() * 2 - 1) * 0.7;
+        
+        // Low frequency component for bass drum feel
+        const bassFreq = 80;
+        const bass = Math.sin(2 * Math.PI * bassFreq * i / ctx.sampleRate) * 0.5;
+        
+        data[i] = (noise * envelope * 0.6) + (bass * envelope * 0.4);
+    }
+    
+    // Create buffer source that will loop
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    
+    // Add a low-pass filter for warmth
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1200, ctx.currentTime);
+    filter.Q.setValueAtTime(1, ctx.currentTime);
+    
+    // Create gain node for volume control
     const gainNode = ctx.createGain();
+    gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
     
-    oscillator.type = 'sawtooth';
-    oscillator.frequency.setValueAtTime(100, ctx.currentTime);
-    
-    // Connect nodes
-    oscillator.connect(gainNode);
+    // Connect the audio graph
+    source.connect(filter);
+    filter.connect(gainNode);
     gainNode.connect(ctx.destination);
     
-    // Start with volume at 0.3
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+    source.start();
     
-    oscillator.start();
-    
-    return { oscillator, gainNode };
+    return { oscillator: source, gainNode }; // Keep same property names for compatibility
 }
 
 // Play spinning sound
@@ -107,11 +142,8 @@ function playSpinningSound() {
         spinningSound = sound.oscillator;
         spinningGainNode = sound.gainNode;
         
-        // Modulate frequency during spin for dynamic effect
-        const ctx = audioContext;
-        const now = ctx.currentTime;
-        spinningSound.frequency.exponentialRampToValueAtTime(200, now + 1);
-        spinningSound.frequency.exponentialRampToValueAtTime(150, now + 2);
+        // The drum roll sound loops continuously during the spin
+        // No frequency modulation needed as this is a buffer-based sound
     } catch (error) {
         console.error('Error playing spinning sound:', error);
     }
