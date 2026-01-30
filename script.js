@@ -102,7 +102,8 @@ function stopSpinningSound() {
 // Play result/win sound effect
 function playResultSound() {
     try {
-        const winAudio = new Audio('./drumrollresult.mp3');
+        const winAudio = new Audio('./result.mp3');
+        winAudio.currentTime = 1;
         winAudio.volume = 0.5;
         winAudio.play().catch(err => console.error('Error playing result sound:', err));
     } catch (error) {
@@ -120,13 +121,13 @@ class Firework {
     }
     
     createParticles() {
-        const targetParticleCount = 30 + Math.random() * 20;
+        const targetParticleCount = 50 + Math.random() * 30;
         const particleCount = Math.floor(targetParticleCount);
-        const colors = ['#ff1744', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b', '#ff9800'];
+        const colors = ['#ff1744', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b', '#ff9800', '#e91e63', '#00ff00', '#ff00ff'];
         
         for (let i = 0; i < particleCount; i++) {
             const angle = (Math.PI * 2 * i) / particleCount;
-            const velocity = 2 + Math.random() * 3;
+            const velocity = 3 + Math.random() * 4;
             
             this.particles.push({
                 x: this.x,
@@ -135,7 +136,7 @@ class Firework {
                 vy: Math.sin(angle) * velocity,
                 life: 1.0,
                 color: colors[Math.floor(Math.random() * colors.length)],
-                size: 2 + Math.random() * 3
+                size: 3 + Math.random() * 4
             });
         }
     }
@@ -221,41 +222,32 @@ function resizeFireworksCanvas() {
 
 // Start fireworks animation
 function startFireworksAnimation() {
-    createFireworksCanvas();
-    
-    // Cancel any existing animation to prevent double-speed rendering
-    if (fireworksAnimationId) {
-        cancelAnimationFrame(fireworksAnimationId);
-        fireworksAnimationId = null;
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
     }
-    
-    // Clear any existing timeouts
-    if (fireworksAutoStopTimeout) {
-        clearTimeout(fireworksAutoStopTimeout);
-        fireworksAutoStopTimeout = null;
-    }
-    
-    fireworksCreationTimeouts.forEach(timeout => clearTimeout(timeout));
-    fireworksCreationTimeouts = [];
-    
-    fireworks = [];
-    
-    // Create multiple fireworks at random positions
-    const fireworkCount = 3 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < fireworkCount; i++) {
-        const timeout = setTimeout(() => {
-            const x = Math.random() * window.innerWidth;
-            const y = Math.random() * (window.innerHeight * 0.6) + (window.innerHeight * 0.1);
-            fireworks.push(new Firework(x, y));
-        }, i * 300);
-        fireworksCreationTimeouts.push(timeout);
-    }
-    
-    // Animate fireworks
-    animateFireworks();
-    
-    // Auto-stop after 3 seconds
-    fireworksAutoStopTimeout = setTimeout(stopFireworksAnimation, 3000);
+
+    const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+
+        confetti(Object.assign({}, defaults, {
+            particleCount,
+            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+        }));
+        confetti(Object.assign({}, defaults, {
+            particleCount,
+            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+        }));
+    }, 250);
 }
 
 // Animate fireworks
