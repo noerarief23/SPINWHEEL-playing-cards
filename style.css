@@ -200,14 +200,17 @@ main {
 
 .result-card {
     display: inline-block;
-    background: #1a1a1a;
-    border-radius: 8px;
-    padding: 20px 30px;
-    min-width: 150px;
-    border: 1px solid #666666;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 0;
+    width: 180px;
+    height: 260px;
+    border: 2px solid #333333;
     opacity: 0;
     transform: scale(0.8);
     transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .result-card.show {
@@ -215,24 +218,65 @@ main {
     transform: scale(1);
 }
 
+.card-face-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
 .card-value {
-    font-size: 3rem;
+    position: absolute;
+    font-size: 2rem;
     font-weight: bold;
-    color: #ffffff;
+    line-height: 1;
+}
+
+.card-value.top-left {
+    top: 12px;
+    left: 12px;
+}
+
+.card-value.bottom-right {
+    bottom: 12px;
+    right: 12px;
+    transform: rotate(180deg);
 }
 
 .card-suit {
-    font-size: 3rem;
+    font-size: 6rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.card-suit-small {
+    font-size: 1.5rem;
+    position: absolute;
+}
+
+.card-suit-small.top-left {
+    top: 42px;
+    left: 12px;
+}
+
+.card-suit-small.bottom-right {
+    bottom: 42px;
+    right: 12px;
+    transform: rotate(180deg);
 }
 
 .result-card.red .card-value,
-.result-card.red .card-suit {
-    color: #ff0000;
+.result-card.red .card-suit,
+.result-card.red .card-suit-small {
+    color: #dc143c;
 }
 
 .result-card.black .card-value,
-.result-card.black .card-suit {
-    color: #ffffff;
+.result-card.black .card-suit,
+.result-card.black .card-suit-small {
+    color: #000000;
 }
 
 .result-text {
@@ -472,9 +516,41 @@ footer {
         font-size: 1.2rem;
     }
 
-    .card-value,
+    .result-card {
+        width: 140px;
+        height: 200px;
+    }
+    
+    .card-value {
+        font-size: 1.5rem;
+    }
+    
+    .card-value.top-left {
+        top: 8px;
+        left: 8px;
+    }
+    
+    .card-value.bottom-right {
+        bottom: 8px;
+        right: 8px;
+    }
+    
     .card-suit {
-        font-size: 2.5rem;
+        font-size: 4rem;
+    }
+    
+    .card-suit-small {
+        font-size: 1.2rem;
+    }
+    
+    .card-suit-small.top-left {
+        top: 32px;
+        left: 8px;
+    }
+    
+    .card-suit-small.bottom-right {
+        bottom: 32px;
+        right: 8px;
     }
 }
 
@@ -517,13 +593,40 @@ footer {
     }
 
     .result-card {
-        padding: 15px 20px;
-        min-width: 120px;
+        width: 120px;
+        height: 170px;
     }
-
-    .card-value,
+    
+    .card-value {
+        font-size: 1.2rem;
+    }
+    
+    .card-value.top-left {
+        top: 6px;
+        left: 6px;
+    }
+    
+    .card-value.bottom-right {
+        bottom: 6px;
+        right: 6px;
+    }
+    
     .card-suit {
-        font-size: 2rem;
+        font-size: 3rem;
+    }
+    
+    .card-suit-small {
+        font-size: 1rem;
+    }
+    
+    .card-suit-small.top-left {
+        top: 26px;
+        left: 6px;
+    }
+    
+    .card-suit-small.bottom-right {
+        bottom: 26px;
+        right: 6px;
     }
 
     .result-text {

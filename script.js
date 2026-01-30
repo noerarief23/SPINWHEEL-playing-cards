@@ -481,8 +481,8 @@ function spin(isRetry = false) {
     const randomAngle = Math.random() * 2 * Math.PI;
     const finalRotation = rotation + totalRotation + randomAngle;
 
-    // Animation duration (3-5 seconds)
-    const duration = 3000 + Math.random() * 2000;
+    // Animation duration (5-8 seconds)
+    const duration = 5000 + Math.random() * 3000;
     const startTime = Date.now();
     const startRotation = rotation;
 
@@ -564,33 +564,34 @@ function spin(isRetry = false) {
 
 // Show result
 function showResult() {
-    const cardValue = resultCard.querySelector('.card-value');
-    const cardSuit = resultCard.querySelector('.card-suit');
-
-    if (!cardValue || !cardSuit) {
-        console.error('Card display elements not found');
-        return;
-    }
-
-    cardValue.textContent = currentCard.rank;
-    cardSuit.textContent = currentCard.suit;
+    resultCard.innerHTML = '';
     
-    // Set color class
+    const rankMap = {
+        'A': 'ace', 'J': 'jack', 'Q': 'queen', 'K': 'king',
+        '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
+        '7': '7', '8': '8', '9': '9', '10': '10'
+    };
+    
+    const suitMap = {
+        'Spades': 'spades', 'Hearts': 'hearts',
+        'Diamonds': 'diamonds', 'Clubs': 'clubs'
+    };
+    
+    const cardImage = document.createElement('img');
+    cardImage.className = 'card-face-image';
+    cardImage.src = `cards/${rankMap[currentCard.rank]}_of_${suitMap[currentCard.suitName]}.svg`;
+    cardImage.alt = `${getRankName(currentCard.rank)} of ${currentCard.suitName}`;
+    resultCard.appendChild(cardImage);
+    
     resultCard.className = 'result-card';
     resultCard.classList.add(currentCard.color);
     
-    // Animate in
     setTimeout(() => {
         resultCard.classList.add('show');
-        
-        // Play result sound effect
         playResultSound();
-        
-        // Start fireworks animation
         startFireworksAnimation();
     }, 100);
 
-    // Update result text with card name
     const rankName = getRankName(currentCard.rank);
     resultText.textContent = `${rankName} of ${currentCard.suitName}!`;
 }
