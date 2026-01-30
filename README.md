@@ -1,6 +1,6 @@
 # SPINWHEEL PLAYING CARDS
 
-A modern, interactive web-based spin wheel game featuring all 52 playing cards. Built with pure HTML5, CSS3, and JavaScript - no dependencies required!
+A modern, interactive web-based spin wheel game featuring all 52 playing cards with advanced card management features. Built with HTML5 Canvas, CSS3, and JavaScript with confetti animations!
 
 ## 🌐 Live Demo
 
@@ -11,12 +11,19 @@ The game is automatically deployed to GitHub Pages whenever changes are pushed t
 ## 🎰 Features
 
 - **Interactive Spin Wheel**: Beautiful, colorful wheel displaying all 52 playing cards (Ace through King, ♠ ♥ ♦ ♣)
+- **Card Management System**: 
+  - Choose how many cards to draw (All 52, Half Deck 26, Quarter Deck 13, or Custom amount)
+  - Manually mark specific cards as drawn from dropdown
+  - Cards are automatically removed from wheel after being drawn
+  - Reset button to start fresh
+- **Card History Panel**: Track all drawn cards with visual history and statistics
+- **Sound Effects**: Drum roll during spin and result sound when card is revealed
+- **Fireworks Animation**: Celebratory confetti animation using canvas-confetti library
 - **Smooth Animations**: 3-5 second spin with smooth ease-out cubic easing effect
-- **Modern UI**: Dark purple gradient background with vibrant neon pink/cyan accents
+- **Modern UI**: Minimalist black background with clean white accents
 - **Responsive Design**: Fully responsive - works perfectly on desktop, tablet, and mobile devices
 - **Accessible**: ARIA labels and live regions for screen reader support
 - **Production Ready**: Clean, optimized code with error handling and null checks
-- **No Dependencies**: Pure vanilla JavaScript - no frameworks or libraries needed
 
 ## 🚀 Quick Start
 
@@ -41,10 +48,15 @@ Then navigate to `http://localhost:8080` in your browser.
 
 ## 🎮 How to Play
 
-1. Click the big **SPIN** button
-2. Watch the wheel spin with a smooth animation
-3. See your randomly selected card displayed in a beautiful card UI
-4. Spin again as many times as you like!
+1. **Configure Your Game** (optional):
+   - Select how many cards you want to draw from the dropdown (52, 26, 13, or custom)
+   - Manually mark specific cards as drawn if needed
+2. Click the big **SPIN** button
+3. Watch the wheel spin with smooth animation and drum roll sound
+4. See your randomly selected card displayed in a beautiful card UI with confetti celebration
+5. View your card history in the side panel
+6. Spin again - drawn cards are automatically removed from the wheel
+7. Click the **Reset** button (bottom right) to start over
 
 ## 📁 Project Structure
 
@@ -53,27 +65,38 @@ SPINWHEEL-playing-cards/
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml          # GitHub Pages deployment workflow
+├── cards/                      # SVG card images (52 cards + jokers)
+│   ├── ace_of_spades.svg
+│   ├── 2_of_hearts.svg
+│   └── ... (all 52 cards)
 ├── index.html                  # Main HTML structure
-├── style.css                   # Modern CSS styling with neon effects
+├── style.css                   # Modern CSS styling
 ├── script.js                   # Game logic and animation
+├── drumroll.mp3                # Spinning sound effect
+├── result.mp3                  # Result/win sound effect
 ├── README.md                   # This file
 └── DEPLOYMENT_INSTRUCTIONS.md  # Deployment guide (Indonesian)
 ```
 
 ## 🎨 Design Features
 
-- **Neon Glow Effects**: Animated pink and cyan neon text effects on the title
+- **Minimalist Black Theme**: Clean black background with white accents
 - **Vibrant Color Wheel**: 13 different colors rotating through all card segments
 - **Card-Style Display**: Classic playing card appearance for the result
-- **Casino Aesthetics**: Professional casino-fun styling throughout
+- **SVG Card Graphics**: High-quality vector card images for all 52 cards
+- **Confetti Celebration**: Canvas-based fireworks animation on card reveal
 - **Smooth Transitions**: All interactions feature polished animations
+- **Fixed Reset Button**: Always accessible reset button in bottom right corner
 
 ## 🛠️ Technical Details
 
-- **HTML5 Canvas**: Used for rendering the spin wheel with precise graphics
-- **CSS3 Animations**: Keyframe animations for neon glow effects
+- **HTML5 Canvas**: Used for rendering the spin wheel with precise graphics and fireworks
+- **CSS3 Animations**: Smooth transitions and slide-in animations for history items
 - **JavaScript**: Vanilla JS with requestAnimationFrame for smooth spinning
-- **Responsive**: CSS media queries for mobile, tablet, and desktop
+- **External Library**: canvas-confetti (CDN) for celebration effects
+- **Audio**: HTML5 Audio API for sound effects (drumroll.mp3, result.mp3)
+- **Responsive**: CSS media queries for mobile (320px+), tablet, and desktop
+- **State Management**: Tracks available cards, drawn cards, and game configuration
 
 ## 🌟 Browser Compatibility
 
@@ -93,10 +116,11 @@ Fully optimized for mobile devices with:
 
 ## 🔒 Security
 
-- No external dependencies or CDNs
+- Minimal external dependencies (only canvas-confetti from CDN)
 - No data collection or tracking
 - Client-side only - no server required
 - Secure by design
+- All game state stored in browser memory only
 
 ## 🚀 Deployment
 
@@ -114,7 +138,10 @@ This project does not currently have an explicit license. All rights reserved by
 
 ## 🎯 Credits
 
-Created with ❤️ for spinwheel!
+Created with ❤️ by ODIN for spinwheel!
+
+**External Libraries:**
+- [canvas-confetti](https://github.com/catdad/canvas-confetti) - Confetti animation effects
 
 ---
 
