@@ -26,6 +26,7 @@ Object.keys(SUITS).forEach(suitKey => {
 let availableCards = [...allCards];
 let drawnCards = [];
 let maxCards = 52; // Default to all cards
+let customDeckCards = [];
 
 // Wheel configuration
 const canvas = document.getElementById('wheelCanvas');
@@ -41,6 +42,13 @@ const resetButton = document.getElementById('resetButton');
 const cardHistoryDiv = document.getElementById('cardHistory');
 const remainingCountSpan = document.getElementById('remainingCount');
 const drawnCountSpan = document.getElementById('drawnCount');
+
+// Custom Deck configuration
+const customDeckContainer = document.getElementById('customDeckContainer');
+const customDeckSelect = document.getElementById('customDeckSelect');
+const addCustomCardBtn = document.getElementById('addCustomCardBtn');
+const clearCustomDeckBtn = document.getElementById('clearCustomDeckBtn');
+const customDeckList = document.getElementById('customDeckList');
 
 // Validate required elements exist
 if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
@@ -698,25 +706,27 @@ function resetGame() {
     // Reset to initial card count based on config
     const cardCountValue = cardCountSelect.value;
     
-    if (cardCountValue === 'custom') {
-        // Validate and clamp custom card count
-        let customValue = parseInt(customCardCountInput.value);
-        if (isNaN(customValue) || customValue < 1) {
-            customValue = 1;
-        } else if (customValue > 52) {
-            customValue = 52;
-        }
-        customCardCountInput.value = customValue;
-        maxCards = customValue;
+    if (cardCountValue === 'custom-list') {
+        maxCards = customDeckCards.length;
+        availableCards = [...customDeckCards];
     } else {
-        maxCards = parseInt(cardCountValue);
+        if (cardCountValue === 'custom') {
+            // Validate and clamp custom card count
+            let customValue = parseInt(customCardCountInput.value);
+            if (isNaN(customValue) || customValue < 1) {
+                customValue = 1;
+            } else if (customValue > 52) {
+                customValue = 52;
+            }
+            customCardCountInput.value = customValue;
+            maxCards = customValue;
+        } else {
+            maxCards = parseInt(cardCountValue);
+        }
+        // Reset available cards to first maxCards
+        availableCards = allCards.slice(0, maxCards);
     }
     
-    // Reset available cards to first maxCards
-    // Note: When using a partial deck (e.g., 13, 26), cards are taken sequentially
-    // from the standard deck order (A♠, 2♠, 3♠, ... K♠, A♥, 2♥, ...).
-    // This ensures consistent and predictable deck composition.
-    availableCards = allCards.slice(0, maxCards);
     drawnCards = [];
     currentCard = null;
     
@@ -749,9 +759,100 @@ function handleCardCountChange() {
         customCardCountInput.classList.add('hidden');
     }
     
+    if (value === 'custom-list') {
+        customDeckContainer.classList.remove('hidden');
+    } else {
+        customDeckContainer.classList.add('hidden');
+    }
+
     // Auto-reset when changing config
     resetGame();
 }
+
+
+// --- Custom Deck Logic ---
+
+function populateCustomDeckSelect() {
+    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
+    allCards.forEach((card, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        customDeckSelect.appendChild(option);
+    });
+}
+
+function renderCustomDeckList() {
+    customDeckList.innerHTML = '';
+    if (customDeckCards.length === 0) {
+        customDeckList.innerHTML = '<span style="color: #666; font-style: italic;">No cards added yet</span>';
+        return;
+    }
+
+    customDeckCards.forEach((card, index) => {
+        const item = document.createElement('div');
+        item.className = 'custom-deck-item';
+
+        const cardText = document.createElement('span');
+        cardText.className = card.color;
+        cardText.textContent = card.display;
+
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'remove-custom-card';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => removeCustomCard(index);
+
+        item.appendChild(cardText);
+        item.appendChild(removeBtn);
+        customDeckList.appendChild(item);
+    });
+}
+
+function removeCustomCard(index) {
+    customDeckCards.splice(index, 1);
+    renderCustomDeckList();
+    if (cardCountSelect.value === 'custom-list') {
+        resetGame();
+    }
+}
+
+addCustomCardBtn.addEventListener('click', () => {
+    const selectedIndex = customDeckSelect.value;
+    if (selectedIndex === '') {
+        alert('Please select a card to add');
+        return;
+    }
+
+    const card = allCards[parseInt(selectedIndex)];
+
+    // Optional: prevent duplicates
+    if (customDeckCards.some(c => c.display === card.display)) {
+        alert('Card is already in the custom deck');
+        return;
+    }
+
+    customDeckCards.push(card);
+    customDeckSelect.value = '';
+    renderCustomDeckList();
+
+    if (cardCountSelect.value === 'custom-list') {
+        resetGame();
+    }
+});
+
+clearCustomDeckBtn.addEventListener('click', () => {
+    customDeckCards = [];
+    renderCustomDeckList();
+    if (cardCountSelect.value === 'custom-list') {
+        resetGame();
+    }
+});
+
+// Initialize custom deck select
+populateCustomDeckSelect();
+renderCustomDeckList();
+
+// --- End Custom Deck Logic ---
 
 // Event listeners
 spinButton.addEventListener('click', () => {

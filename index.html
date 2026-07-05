@@ -55,8 +55,23 @@
                     <option value="26">Half Deck (26)</option>
                     <option value="13">Quarter Deck (13)</option>
                     <option value="custom">Custom</option>
+                    <option value="custom-list">Custom List</option>
                 </select>
                 <input type="number" id="customCardCount" class="hidden" min="1" max="52" value="10">
+            </div>
+
+            <div id="customDeckContainer" class="config-item custom-deck-container hidden">
+                <label>Custom Deck Cards:</label>
+                <div class="custom-deck-controls">
+                    <select id="customDeckSelect">
+                        <option value="">-- Select a card to add --</option>
+                    </select>
+                    <button id="addCustomCardBtn" class="mark-button">Add</button>
+                    <button id="clearCustomDeckBtn" class="reset-button" style="position: static; margin: 0; padding: 10px 15px; font-size: 0.9rem;">Clear Deck</button>
+                </div>
+                <div id="customDeckList" class="custom-deck-list">
+                    <!-- Custom cards will appear here -->
+                </div>
             </div>
             <div class="config-item">
                 <label for="cardSelect">Mark cards as drawn:</label>
