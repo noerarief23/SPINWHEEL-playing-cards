@@ -654,3 +654,46 @@ footer {
         border-top: 20px solid #ffffff;
     }
 }
+
+/* Custom Deck Styles */
+.custom-deck-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.custom-deck-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.custom-deck-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+    min-height: 40px;
+    border: 1px dashed #333;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.custom-deck-item {
+    background: #333;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+
+.remove-custom-card {
+    cursor: pointer;
+    color: #ff4444;
+    font-weight: bold;
+    margin-left: 5px;
+}
