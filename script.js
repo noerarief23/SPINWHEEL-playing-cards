@@ -799,9 +799,10 @@ function renderCustomDeckList() {
         cardText.className = card.color;
         cardText.textContent = card.display;
 
-        const removeBtn = document.createElement('span');
+        const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-custom-card';
         removeBtn.textContent = '×';
+        removeBtn.setAttribute('aria-label', `Remove ${getRankName(card.rank)} of ${card.suitName}`);
         removeBtn.onclick = () => removeCustomCard(index);
 
         item.appendChild(cardText);

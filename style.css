@@ -691,8 +691,24 @@ footer {
 }
 
 .remove-custom-card {
+    background: none;
+    border: none;
+    padding: 0;
     cursor: pointer;
     color: #ff4444;
     font-weight: bold;
     margin-left: 5px;
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: opacity 0.2s;
+}
+
+.remove-custom-card:hover {
+    opacity: 0.8;
+}
+
+.remove-custom-card:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 2px;
 }
