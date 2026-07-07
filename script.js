@@ -425,27 +425,26 @@ function prerenderWheel() {
 
 // Draw the wheel (using prerendered offscreen canvas)
 function drawWheel() {
+    let wasRedrawn = false;
     // Prerender if needed
     if (needsRedraw || !offscreenCanvas) {
         prerenderWheel();
+        wasRedrawn = true;
     }
 
-    const dpr = window.devicePixelRatio || 1;
-    const size = canvas.width / dpr;
-    const centerX = size / 2;
-    const centerY = size / 2;
+    if (wasRedrawn) {
+        const dpr = window.devicePixelRatio || 1;
+        const size = canvas.width / dpr;
 
-    // Clear using logical size
-    ctx.clearRect(0, 0, size, size);
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(rotation);
-    ctx.translate(-centerX, -centerY);
+        // Clear using logical size
+        ctx.clearRect(0, 0, size, size);
+
+        // Draw the prerendered wheel at correct logical size
+        ctx.drawImage(offscreenCanvas, 0, 0, size, size);
+    }
     
-    // Draw the prerendered wheel at correct logical size
-    ctx.drawImage(offscreenCanvas, 0, 0, size, size);
-
-    ctx.restore();
+    // Hardware accelerated rotation via CSS
+    canvas.style.transform = `rotate(${rotation}rad)`;
 }
 
 // Spin animation
@@ -506,6 +505,9 @@ function spin(isRetry = false) {
             // Normalize rotation to positive value
             rotation = ((rotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
             
+            // Ensure the canvas displays the final normalized rotation exactly
+            canvas.style.transform = `rotate(${rotation}rad)`;
+
             // Determine winning card (pointer at top points to -π/2)
             let pointerAngle = (2 * Math.PI - rotation - Math.PI / 2) % (2 * Math.PI);
             // Ensure positive angle
