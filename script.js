@@ -119,116 +119,7 @@ function playResultSound() {
     }
 }
 
-// Fireworks animation
-class Firework {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.particles = [];
-        this.createParticles();
-    }
-    
-    createParticles() {
-        const targetParticleCount = 50 + Math.random() * 30;
-        const particleCount = Math.floor(targetParticleCount);
-        const colors = ['#ff1744', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b', '#ff9800', '#e91e63', '#00ff00', '#ff00ff'];
-        
-        for (let i = 0; i < particleCount; i++) {
-            const angle = (Math.PI * 2 * i) / particleCount;
-            const velocity = 3 + Math.random() * 4;
-            
-            this.particles.push({
-                x: this.x,
-                y: this.y,
-                vx: Math.cos(angle) * velocity,
-                vy: Math.sin(angle) * velocity,
-                life: 1.0,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                size: 3 + Math.random() * 4
-            });
-        }
-    }
-    
-    update() {
-        this.particles.forEach(particle => {
-            particle.x += particle.vx;
-            particle.y += particle.vy;
-            particle.vy += 0.1; // gravity
-            particle.life -= 0.02;
-        });
-        
-        // Remove dead particles
-        this.particles = this.particles.filter(p => p.life > 0);
-    }
-    
-    draw(ctx) {
-        this.particles.forEach(particle => {
-            ctx.save();
-            ctx.globalAlpha = particle.life;
-            ctx.fillStyle = particle.color;
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-        });
-    }
-    
-    isDead() {
-        return this.particles.length === 0;
-    }
-}
-
-let fireworksCanvas = null;
-let fireworksCtx = null;
-let fireworks = [];
-let fireworksAnimationId = null;
-let fireworksAutoStopTimeout = null;
-let fireworksCreationTimeouts = [];
-let fireworksResizeListenerAdded = false;
-
-// Create fireworks canvas overlay
-function createFireworksCanvas() {
-    if (!fireworksCanvas) {
-        fireworksCanvas = document.createElement('canvas');
-        fireworksCanvas.id = 'fireworksCanvas';
-        fireworksCanvas.style.position = 'fixed';
-        fireworksCanvas.style.top = '0';
-        fireworksCanvas.style.left = '0';
-        fireworksCanvas.style.width = '100%';
-        fireworksCanvas.style.height = '100%';
-        fireworksCanvas.style.pointerEvents = 'none'; // Don't block user interaction
-        fireworksCanvas.style.zIndex = '9999';
-        document.body.appendChild(fireworksCanvas);
-        fireworksCtx = fireworksCanvas.getContext('2d');
-        
-        // Set canvas size with device pixel ratio for crisp rendering
-        resizeFireworksCanvas();
-        
-        // Add resize listener only once
-        if (!fireworksResizeListenerAdded) {
-            window.addEventListener('resize', resizeFireworksCanvas);
-            fireworksResizeListenerAdded = true;
-        }
-    }
-    return fireworksCanvas;
-}
-
-// Resize fireworks canvas
-function resizeFireworksCanvas() {
-    if (fireworksCanvas) {
-        const dpr = window.devicePixelRatio || 1;
-        fireworksCanvas.width = window.innerWidth * dpr;
-        fireworksCanvas.height = window.innerHeight * dpr;
-        
-        // Reset transform and scale context for high DPI displays
-        if (fireworksCtx) {
-            fireworksCtx.setTransform(1, 0, 0, 1, 0, 0);
-            fireworksCtx.scale(dpr, dpr);
-        }
-    }
-}
-
-// Start fireworks animation
+// Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
     const duration = 3000;
     const animationEnd = Date.now() + duration;
@@ -256,53 +147,6 @@ function startFireworksAnimation() {
             origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
         }));
     }, 250);
-}
-
-// Animate fireworks
-function animateFireworks() {
-    if (!fireworksCtx) return;
-    
-    // Clear canvas with logical dimensions (CSS pixels)
-    const dpr = window.devicePixelRatio || 1;
-    fireworksCtx.clearRect(0, 0, fireworksCanvas.width / dpr, fireworksCanvas.height / dpr);
-    
-    // Update and draw fireworks
-    fireworks.forEach(firework => {
-        firework.update();
-        firework.draw(fireworksCtx);
-    });
-    
-    // Remove dead fireworks
-    fireworks = fireworks.filter(f => !f.isDead());
-    
-    // Continue animation if there are active fireworks
-    if (fireworks.length > 0) {
-        fireworksAnimationId = requestAnimationFrame(animateFireworks);
-    }
-}
-
-// Stop fireworks animation
-function stopFireworksAnimation() {
-    // Clear timeouts
-    if (fireworksAutoStopTimeout) {
-        clearTimeout(fireworksAutoStopTimeout);
-        fireworksAutoStopTimeout = null;
-    }
-    
-    fireworksCreationTimeouts.forEach(timeout => clearTimeout(timeout));
-    fireworksCreationTimeouts = [];
-    
-    if (fireworksAnimationId) {
-        cancelAnimationFrame(fireworksAnimationId);
-        fireworksAnimationId = null;
-    }
-    
-    if (fireworksCtx && fireworksCanvas) {
-        const dpr = window.devicePixelRatio || 1;
-        fireworksCtx.clearRect(0, 0, fireworksCanvas.width / dpr, fireworksCanvas.height / dpr);
-    }
-    
-    fireworks = [];
 }
 
 // Segment colors (grayscale)
@@ -564,24 +408,24 @@ function spin(isRetry = false) {
     animate();
 }
 
+const RANK_MAP = {
+    'A': 'ace', 'J': 'jack', 'Q': 'queen', 'K': 'king',
+    '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
+    '7': '7', '8': '8', '9': '9', '10': '10'
+};
+
+const SUIT_MAP = {
+    'Spades': 'spades', 'Hearts': 'hearts',
+    'Diamonds': 'diamonds', 'Clubs': 'clubs'
+};
+
 // Show result
 function showResult() {
     resultCard.innerHTML = '';
     
-    const rankMap = {
-        'A': 'ace', 'J': 'jack', 'Q': 'queen', 'K': 'king',
-        '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
-        '7': '7', '8': '8', '9': '9', '10': '10'
-    };
-    
-    const suitMap = {
-        'Spades': 'spades', 'Hearts': 'hearts',
-        'Diamonds': 'diamonds', 'Clubs': 'clubs'
-    };
-    
     const cardImage = document.createElement('img');
     cardImage.className = 'card-face-image';
-    cardImage.src = `cards/${rankMap[currentCard.rank]}_of_${suitMap[currentCard.suitName]}.svg`;
+    cardImage.src = `cards/${RANK_MAP[currentCard.rank]}_of_${SUIT_MAP[currentCard.suitName]}.svg`;
     cardImage.alt = `${getRankName(currentCard.rank)} of ${currentCard.suitName}`;
     resultCard.appendChild(cardImage);
     
@@ -598,15 +442,16 @@ function showResult() {
     resultText.textContent = `${rankName} of ${currentCard.suitName}!`;
 }
 
+const RANK_NAMES = {
+    'A': 'Ace',
+    'J': 'Jack',
+    'Q': 'Queen',
+    'K': 'King'
+};
+
 // Get full rank name
 function getRankName(rank) {
-    const rankNames = {
-        'A': 'Ace',
-        'J': 'Jack',
-        'Q': 'Queen',
-        'K': 'King'
-    };
-    return rankNames[rank] || rank;
+    return RANK_NAMES[rank] || rank;
 }
 
 // Update stats display
@@ -626,13 +471,18 @@ function updateCardSelect() {
     // Clear existing options except the first one
     cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
     
+    // Use DocumentFragment for performance
+    const fragment = document.createDocumentFragment();
+
     // Add options for all available cards
     availableCards.forEach((card, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        cardSelect.appendChild(option);
+        fragment.appendChild(option);
     });
+
+    cardSelect.appendChild(fragment);
 }
 
 // Add card to history
@@ -776,12 +626,14 @@ function handleCardCountChange() {
 
 function populateCustomDeckSelect() {
     customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
+    const fragment = document.createDocumentFragment();
     allCards.forEach((card, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        customDeckSelect.appendChild(option);
+        fragment.appendChild(option);
     });
+    customDeckSelect.appendChild(fragment);
 }
 
 function renderCustomDeckList() {
@@ -790,6 +642,8 @@ function renderCustomDeckList() {
         customDeckList.innerHTML = '<span style="color: #666; font-style: italic;">No cards added yet</span>';
         return;
     }
+
+    const fragment = document.createDocumentFragment();
 
     customDeckCards.forEach((card, index) => {
         const item = document.createElement('div');
@@ -807,8 +661,10 @@ function renderCustomDeckList() {
 
         item.appendChild(cardText);
         item.appendChild(removeBtn);
-        customDeckList.appendChild(item);
+        fragment.appendChild(item);
     });
+
+    customDeckList.appendChild(fragment);
 }
 
 function removeCustomCard(index) {
