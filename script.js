@@ -659,6 +659,12 @@ function addToHistory(card) {
     historyItem.appendChild(cardDisplay);
     historyItem.appendChild(cardName);
     
+    // Remove empty state if it exists
+    const emptyState = cardHistoryDiv.querySelector('.empty-state');
+    if (emptyState) {
+        emptyState.remove();
+    }
+
     // Add at the top
     cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
 }
@@ -733,7 +739,7 @@ function resetGame() {
     currentCard = null;
     
     // Clear history
-    cardHistoryDiv.innerHTML = '';
+    cardHistoryDiv.innerHTML = '<div class="empty-state">No cards drawn yet</div>';
     
     // Update stats
     updateStats();
