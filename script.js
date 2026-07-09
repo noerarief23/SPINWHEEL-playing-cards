@@ -904,7 +904,12 @@ function resizeCanvas() {
 }
 
 // Initialize
-window.addEventListener('resize', resizeCanvas);
+// Performance Optimization: Debounce canvas resize to prevent expensive redraws
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resizeCanvas, 150);
+});
 
 // Wait for DOM and layout to be ready
 function waitForLayout(callback) {
