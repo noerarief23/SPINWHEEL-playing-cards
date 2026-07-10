@@ -723,6 +723,33 @@ renderCustomDeckList();
 spinButton.addEventListener('click', () => {
     spin();
 });
+
+// Spacebar shortcut for spinning
+document.addEventListener('keydown', (e) => {
+    // Only trigger if spacebar is pressed
+    if (e.code === 'Space') {
+        // Prevent default scrolling behavior
+
+        // Don't trigger if user is interacting with form elements
+        const activeElement = document.activeElement;
+        const ignoreElements = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'];
+
+        if (activeElement && ignoreElements.includes(activeElement.tagName)) {
+            return; // Let the native element handle the spacebar
+        }
+
+        e.preventDefault();
+
+        // Trigger spin if not already spinning and button is not disabled
+        if (!isSpinning && !spinButton.disabled) {
+            spin();
+            // Provide visual feedback
+            spinButton.classList.add('active');
+            setTimeout(() => spinButton.classList.remove('active'), 150);
+        }
+    }
+});
+
 resetButton.addEventListener('click', resetGame);
 cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
