@@ -1,0 +1,3 @@
+## 2026-03-01 - Debouncing Canvas Resize and GPU Compositing
+**Learning:** Frequent window resize events trigger continuous and expensive canvas redraws (especially with text shadows and loop iterations), causing main thread blockages. Hardware-accelerated CSS transforms (`transform: rotate`) without `will-change: transform` can also lead to paint thrashing during spin animations if the element isn't promoted to a compositor layer.
+**Action:** Always debounce window resize events that trigger heavy calculations (like canvas redraws) using a short timeout (e.g., 150ms). Use `will-change: transform` on elements that undergo continuous CSS transform animations to ensure GPU compositing and smooth 60fps rendering without blocking the main thread.
