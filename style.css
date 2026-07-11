@@ -669,6 +669,16 @@ footer {
     }
 }
 
+/* Accessibility - Focus Styles */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
 /* Custom Deck Styles */
 .custom-deck-container {
     display: flex;
