@@ -307,8 +307,10 @@ main {
     background: #cccccc;
 }
 
-.spin-button:active {
+.spin-button:active,
+.spin-button.active {
     transform: scale(0.95);
+    background: #cccccc;
 }
 
 .spin-button:disabled {
@@ -724,4 +726,30 @@ footer {
     outline: 2px solid #ffffff;
     outline-offset: 2px;
     border-radius: 2px;
+}
+
+/* Global Focus Visible for Keyboard Navigation */
+:focus-visible {
+    outline: 2px solid #00BCD4;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Keyboard Shortcut Hint */
+.keyboard-hint {
+    color: #666666;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    text-align: center;
+}
+
+.keyboard-hint kbd {
+    background: #333333;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    color: #cccccc;
+    box-shadow: 0 2px 0 #222222;
 }

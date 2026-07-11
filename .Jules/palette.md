@@ -5,3 +5,6 @@
 ## 2025-07-08 - Add Empty States for Better UX
 **Learning:** Empty lists (like the card history) can leave users wondering what should be there. Providing a clear "empty state" with helpful text ("No cards drawn yet") guides the user and provides better initial context. Similarly, implicit inputs without clear screen-reader labels can cause confusion.
 **Action:** Always include empty states for dynamic lists and explicit `aria-label` or `for` attributes on inputs and labels.
+## 2023-11-20 - Dark Mode Focus Visibility
+**Learning:** Default browser focus rings often fail contrast requirements on dark backgrounds (#000000). Keyboard users may lose their place without custom, high-contrast `:focus-visible` styles.
+**Action:** Always verify keyboard navigation in dark themes and apply a high-contrast focus ring (e.g., `#00BCD4` on black) using `:focus-visible`.
