@@ -49,6 +49,7 @@ const customDeckSelect = document.getElementById('customDeckSelect');
 const addCustomCardBtn = document.getElementById('addCustomCardBtn');
 const clearCustomDeckBtn = document.getElementById('clearCustomDeckBtn');
 const customDeckList = document.getElementById('customDeckList');
+const wheelContainer = document.querySelector('.wheel-container');
 
 // Validate required elements exist
 if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
@@ -755,16 +756,29 @@ cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
 markSelectedBtn.addEventListener('click', markSelectedCardAsDrawn);
 
+// ⚡ Bolt: Debounce utility to prevent layout thrashing on rapid events
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Handle responsive canvas sizing
 function resizeCanvas() {
-    const container = document.querySelector('.wheel-container');
-    if (!container) {
+    // ⚡ Bolt: Use globally cached wheelContainer to avoid redundant DOM queries
+    if (!wheelContainer) {
         console.error('Wheel container not found');
         return;
     }
     
     // Use ONLY offsetWidth (aspect-ratio ensures 1:1)
-    let size = container.offsetWidth;
+    let size = wheelContainer.offsetWidth;
     
     // Fallback if offsetWidth is 0
     const CONTAINER_PADDING = 40;
@@ -793,12 +807,9 @@ function resizeCanvas() {
 }
 
 // Initialize
-// Optimize: Debounce window resize to prevent excessive redraws (performance)
-let resizeTimeout;
-window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resizeCanvas, 150);
-});
+// ⚡ Bolt: Debounce resize event to prevent synchronous recalculation 60fps and CPU spikes
+const debouncedResize = debounce(resizeCanvas, 250);
+window.addEventListener('resize', debouncedResize);
 
 // Wait for DOM and layout to be ready
 function waitForLayout(callback) {
@@ -806,8 +817,8 @@ function waitForLayout(callback) {
     const maxAttempts = 60; // Max 1 second wait
     
     function attempt() {
-        const container = document.querySelector('.wheel-container');
-        if (container && container.offsetWidth > 0) {
+        // ⚡ Bolt: Use cached wheelContainer
+        if (wheelContainer && wheelContainer.offsetWidth > 0) {
             callback();
         } else if (attempts < maxAttempts) {
             attempts++;
