@@ -484,6 +484,11 @@ function updateCardSelect() {
     });
 
     cardSelect.appendChild(fragment);
+
+    // Also reset button state if it was enabled
+    if (markSelectedBtn) {
+        markSelectedBtn.disabled = true;
+    }
 }
 
 // Add card to history
@@ -525,20 +530,20 @@ function markSelectedCardAsDrawn() {
     const selectedIndex = cardSelect.value;
     
     if (selectedIndex === '') {
-        alert('Please select a card from the dropdown');
+        showButtonFeedback(markSelectedBtn, 'Please select a card');
         return;
     }
     
     // Check if we would exceed maxCards
     if (drawnCards.length >= maxCards) {
-        alert('Cannot mark more cards. The configured deck limit has been reached.');
+        showButtonFeedback(markSelectedBtn, 'Deck limit reached');
         return;
     }
     
     const index = parseInt(selectedIndex);
     
     if (index < 0 || index >= availableCards.length) {
-        alert('Invalid card selection');
+        showButtonFeedback(markSelectedBtn, 'Invalid selection');
         return;
     }
     
@@ -629,6 +634,41 @@ function handleCardCountChange() {
 }
 
 
+// Helper for inline button feedback
+function showButtonFeedback(button, message) {
+    // Store original text if not already stored to prevent overwriting during rapid clicks
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = button.textContent;
+    }
+    const originalText = button.dataset.originalText;
+    const originalDisabled = button.disabled;
+
+    // Clear existing timeout if any
+    if (button.dataset.feedbackTimeout) {
+        clearTimeout(parseInt(button.dataset.feedbackTimeout));
+    }
+
+    button.textContent = message;
+    button.disabled = true;
+
+    // Announce to screen reader
+    const originalAriaLabel = button.getAttribute('aria-label');
+    if (originalAriaLabel) {
+        button.setAttribute('aria-label', message);
+    }
+
+    const timeoutId = setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = originalDisabled;
+        if (originalAriaLabel) {
+            button.setAttribute('aria-label', originalAriaLabel);
+        }
+        delete button.dataset.feedbackTimeout;
+    }, 2000);
+
+    button.dataset.feedbackTimeout = timeoutId.toString();
+}
+
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
@@ -641,6 +681,11 @@ function populateCustomDeckSelect() {
         fragment.appendChild(option);
     });
     customDeckSelect.appendChild(fragment);
+
+    // Reset button state
+    if (addCustomCardBtn) {
+        addCustomCardBtn.disabled = true;
+    }
 }
 
 function renderCustomDeckList() {
@@ -685,7 +730,7 @@ function removeCustomCard(index) {
 addCustomCardBtn.addEventListener('click', () => {
     const selectedIndex = customDeckSelect.value;
     if (selectedIndex === '') {
-        alert('Please select a card to add');
+        showButtonFeedback(addCustomCardBtn, 'Please select a card');
         return;
     }
 
@@ -693,17 +738,20 @@ addCustomCardBtn.addEventListener('click', () => {
 
     // Optional: prevent duplicates
     if (customDeckCards.some(c => c.display === card.display)) {
-        alert('Card is already in the custom deck');
+        showButtonFeedback(addCustomCardBtn, 'Already added');
         return;
     }
 
     customDeckCards.push(card);
     customDeckSelect.value = '';
+    customDeckSelect.dispatchEvent(new Event('change')); // Trigger change to update disabled state
     renderCustomDeckList();
 
     if (cardCountSelect.value === 'custom-list') {
         resetGame();
     }
+
+    showButtonFeedback(addCustomCardBtn, 'Added!');
 });
 
 clearCustomDeckBtn.addEventListener('click', () => {
@@ -713,6 +761,20 @@ clearCustomDeckBtn.addEventListener('click', () => {
         resetGame();
     }
 });
+
+// Disable buttons initially and enable on valid select
+cardSelect.addEventListener('change', () => {
+    markSelectedBtn.disabled = cardSelect.value === '';
+});
+// Set initial state
+markSelectedBtn.disabled = true;
+
+customDeckSelect.addEventListener('change', () => {
+    addCustomCardBtn.disabled = customDeckSelect.value === '';
+});
+// Set initial state
+addCustomCardBtn.disabled = true;
+
 
 // Initialize custom deck select
 populateCustomDeckSelect();
