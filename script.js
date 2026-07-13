@@ -69,6 +69,7 @@ const MAX_RETRIES = 3;
 
 // Audio for sound effects
 let spinningAudio = null;
+let resultAudio = null; // ⚡ Bolt: Cache result audio instance
 
 // Preload audio files
 function preloadAudio() {
@@ -81,6 +82,12 @@ function preloadAudio() {
     // Handle audio load error
     spinningAudio.addEventListener('error', () => {
         console.warn('Drum roll audio file not found. Please add drumroll.mp3 to your project folder.');
+    });
+
+    // ⚡ Bolt: Preload result sound to avoid disk I/O and garbage collection during critical render path
+    resultAudio = new Audio('./result.mp3');
+    resultAudio.addEventListener('error', () => {
+        console.warn('Result audio file not found.');
     });
 }
 
@@ -111,10 +118,17 @@ function stopSpinningSound() {
 // Play result/win sound effect
 function playResultSound() {
     try {
-        const winAudio = new Audio('./result.mp3');
-        winAudio.currentTime = 1;
-        winAudio.volume = 0.5;
-        winAudio.play().catch(err => console.error('Error playing result sound:', err));
+        // ⚡ Bolt: Use cached audio instance instead of instantiating new Audio() on every win to eliminate latency
+        if (resultAudio) {
+            resultAudio.currentTime = 1;
+            resultAudio.volume = 0.5;
+            resultAudio.play().catch(err => console.error('Error playing result sound:', err));
+        } else {
+            const winAudio = new Audio('./result.mp3');
+            winAudio.currentTime = 1;
+            winAudio.volume = 0.5;
+            winAudio.play().catch(err => console.error('Error playing result sound:', err));
+        }
     } catch (error) {
         console.error('Error playing result sound:', error);
     }
@@ -334,6 +348,20 @@ function spin(isRetry = false) {
     const randomAngle = Math.random() * 2 * Math.PI;
     const finalRotation = rotation + totalRotation + randomAngle;
 
+    // ⚡ Bolt: Precalculate winning card and preload its image while spin animation plays
+    // Determine the predicted winning card by calculating where the pointer will end up
+    let predictedRotation = ((finalRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+    let predictedPointerAngle = (2 * Math.PI - predictedRotation - Math.PI / 2) % (2 * Math.PI);
+    if (predictedPointerAngle < 0) predictedPointerAngle += 2 * Math.PI;
+    const segmentAngle = (2 * Math.PI) / availableCards.length;
+    const predictedWinningIndex = Math.floor(predictedPointerAngle / segmentAngle) % availableCards.length;
+    const predictedCard = availableCards[predictedWinningIndex];
+    if (predictedCard) {
+        // Preload image over network during 5-8s spin animation to eliminate visual pop-in when showResult() runs
+        const img = new Image();
+        img.src = `cards/${RANK_MAP[predictedCard.rank]}_of_${SUIT_MAP[predictedCard.suitName]}.svg`;
+    }
+
     // Animation duration (5-8 seconds)
     const duration = 5000 + Math.random() * 3000;
     const startTime = Date.now();
@@ -493,6 +521,11 @@ function updateCardSelect() {
     });
 
     cardSelect.appendChild(fragment);
+
+    // Also reset button state if it was enabled
+    if (markSelectedBtn) {
+        markSelectedBtn.disabled = true;
+    }
 }
 
 // Add card to history
@@ -529,25 +562,59 @@ function addToHistory(card) {
     cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
 }
 
+// Helper to show inline feedback
+function showFeedback(button, message, isError = true) {
+    const originalText = button.dataset.originalText || button.textContent;
+    const originalColor = button.dataset.originalColor || button.style.color;
+
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = originalText;
+        button.dataset.originalColor = originalColor;
+    }
+
+    let liveRegion = button.nextElementSibling;
+    if (!liveRegion || !liveRegion.classList.contains('sr-only') || !liveRegion.hasAttribute('aria-live')) {
+        liveRegion = document.createElement('span');
+        liveRegion.className = 'sr-only';
+        liveRegion.setAttribute('aria-live', 'polite');
+        button.parentNode.insertBefore(liveRegion, button.nextSibling);
+    }
+
+    liveRegion.textContent = message;
+
+    button.textContent = message;
+    button.style.color = isError ? '#ff4444' : '#4CAF50';
+
+    if (button.feedbackTimeout) {
+        clearTimeout(button.feedbackTimeout);
+    }
+
+    button.feedbackTimeout = setTimeout(() => {
+        button.textContent = button.dataset.originalText;
+        button.style.color = button.dataset.originalColor;
+        liveRegion.textContent = '';
+    }, 3000);
+}
+
 // Mark selected card as drawn
 function markSelectedCardAsDrawn() {
     const selectedIndex = cardSelect.value;
     
     if (selectedIndex === '') {
-        alert('Please select a card from the dropdown');
+        showFeedback(markSelectedBtn, 'Please select a card', true);
         return;
     }
     
     // Check if we would exceed maxCards
     if (drawnCards.length >= maxCards) {
-        alert('Cannot mark more cards. The configured deck limit has been reached.');
+        showFeedback(markSelectedBtn, 'Deck limit reached', true);
         return;
     }
     
     const index = parseInt(selectedIndex);
     
     if (index < 0 || index >= availableCards.length) {
-        alert('Invalid card selection');
+        showFeedback(markSelectedBtn, 'Invalid selection', true);
         return;
     }
     
@@ -566,7 +633,7 @@ function markSelectedCardAsDrawn() {
     cardSelect.value = '';
     
     // Show success feedback
-    alert(`Marked ${card.display} as drawn`);
+    showFeedback(markSelectedBtn, `Marked ${card.display}`, false);
 }
 
 // Reset the game
@@ -638,6 +705,41 @@ function handleCardCountChange() {
 }
 
 
+// Helper for inline button feedback
+function showButtonFeedback(button, message) {
+    // Store original text if not already stored to prevent overwriting during rapid clicks
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = button.textContent;
+    }
+    const originalText = button.dataset.originalText;
+    const originalDisabled = button.disabled;
+
+    // Clear existing timeout if any
+    if (button.dataset.feedbackTimeout) {
+        clearTimeout(parseInt(button.dataset.feedbackTimeout));
+    }
+
+    button.textContent = message;
+    button.disabled = true;
+
+    // Announce to screen reader
+    const originalAriaLabel = button.getAttribute('aria-label');
+    if (originalAriaLabel) {
+        button.setAttribute('aria-label', message);
+    }
+
+    const timeoutId = setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = originalDisabled;
+        if (originalAriaLabel) {
+            button.setAttribute('aria-label', originalAriaLabel);
+        }
+        delete button.dataset.feedbackTimeout;
+    }, 2000);
+
+    button.dataset.feedbackTimeout = timeoutId.toString();
+}
+
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
@@ -650,6 +752,11 @@ function populateCustomDeckSelect() {
         fragment.appendChild(option);
     });
     customDeckSelect.appendChild(fragment);
+
+    // Reset button state
+    if (addCustomCardBtn) {
+        addCustomCardBtn.disabled = true;
+    }
 }
 
 function renderCustomDeckList() {
@@ -694,7 +801,7 @@ function removeCustomCard(index) {
 addCustomCardBtn.addEventListener('click', () => {
     const selectedIndex = customDeckSelect.value;
     if (selectedIndex === '') {
-        alert('Please select a card to add');
+        showFeedback(addCustomCardBtn, 'Select a card', true);
         return;
     }
 
@@ -702,17 +809,19 @@ addCustomCardBtn.addEventListener('click', () => {
 
     // Optional: prevent duplicates
     if (customDeckCards.some(c => c.display === card.display)) {
-        alert('Card is already in the custom deck');
+        showFeedback(addCustomCardBtn, 'Already added', true);
         return;
     }
 
     customDeckCards.push(card);
     customDeckSelect.value = '';
+    customDeckSelect.dispatchEvent(new Event('change')); // Trigger change to update disabled state
     renderCustomDeckList();
 
     if (cardCountSelect.value === 'custom-list') {
         resetGame();
     }
+    showFeedback(addCustomCardBtn, 'Added successfully', false);
 });
 
 clearCustomDeckBtn.addEventListener('click', () => {
@@ -722,6 +831,20 @@ clearCustomDeckBtn.addEventListener('click', () => {
         resetGame();
     }
 });
+
+// Disable buttons initially and enable on valid select
+cardSelect.addEventListener('change', () => {
+    markSelectedBtn.disabled = cardSelect.value === '';
+});
+// Set initial state
+markSelectedBtn.disabled = true;
+
+customDeckSelect.addEventListener('change', () => {
+    addCustomCardBtn.disabled = customDeckSelect.value === '';
+});
+// Set initial state
+addCustomCardBtn.disabled = true;
+
 
 // Initialize custom deck select
 populateCustomDeckSelect();

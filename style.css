@@ -112,8 +112,13 @@ header {
     transition: all 0.3s ease;
 }
 
-.mark-button:hover {
+.mark-button:hover:not(:disabled) {
     background: #444444;
+}
+
+.mark-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Main Content Layout */
