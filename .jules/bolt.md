@@ -1,3 +1,10 @@
+## 2024-07-07 - Canvas Animation Hardware Acceleration
+**Learning:** For continuous rotation of a complex prerendered canvas (like the 52-segment wheel), using `requestAnimationFrame` to repeatedly call `ctx.clearRect()`, `ctx.translate()`, `ctx.rotate()`, and `ctx.drawImage()` on the main thread is a major CPU bottleneck.
+**Action:** Always offload continuous visual transformations of a static canvas to the GPU using CSS `transform: rotate()`. Only use Canvas API drawing methods when the actual contents of the canvas need to change (e.g., removing a segment). Also remember to remove any CSS `transition` properties that might conflict with frame-by-frame JS updates.
+
+## 2024-07-08 - Canvas Resize Event Debouncing
+**Learning:** Offscreen canvas prerendering is a fantastic optimization for a complex static 52-segment wheel, but it becomes a major performance liability if the heavy redraw logic is triggered on every single frame during a window resize event.
+**Action:** Always debounce the `resize` event listener when it triggers expensive Canvas redraw functions, ensuring recalculations only happen once the user has finished resizing the window.
 ## 2025-02-28 - Un-debounced Canvas Resizing Nullifies Offscreen Rendering Performance
 **Learning:** The codebase implements an offscreen canvas to optimize expensive rendering of 52 wheel segments. However, the un-debounced `window.resize` handler directly bypasses this caching by forcefully setting `needsRedraw = true` and executing synchronous redrawing many times per second during resize. This negates the performance benefit of the offscreen canvas during window resizing, leading to layout thrashing and severe CPU spikes. Furthermore, continuous DOM queries (`document.querySelector('.wheel-container')`) on every resize event add unnecessary overhead.
 **Action:** When implementing rendering caches or expensive recalculations that depend on viewport size, always ensure that event listeners triggering those recalculations (like `resize` or `scroll`) are debounced. Also, cache frequently accessed DOM nodes to avoid redundant queries during high-frequency events.

@@ -939,9 +939,12 @@ function resizeCanvas() {
 }
 
 // Initialize
-// ⚡ Bolt: Debounce resize event to prevent synchronous recalculation 60fps and CPU spikes
-const debouncedResize = debounce(resizeCanvas, 250);
-window.addEventListener('resize', debouncedResize);
+// Performance Optimization: Debounce canvas resize to prevent expensive redraws
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resizeCanvas, 150);
+});
 
 // Wait for DOM and layout to be ready
 function waitForLayout(callback) {
