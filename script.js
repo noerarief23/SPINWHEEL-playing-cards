@@ -69,6 +69,7 @@ const MAX_RETRIES = 3;
 
 // Audio for sound effects
 let spinningAudio = null;
+let resultAudio = null; // ⚡ Bolt: Cache result audio instance
 
 // Preload audio files
 function preloadAudio() {
@@ -81,6 +82,12 @@ function preloadAudio() {
     // Handle audio load error
     spinningAudio.addEventListener('error', () => {
         console.warn('Drum roll audio file not found. Please add drumroll.mp3 to your project folder.');
+    });
+
+    // ⚡ Bolt: Preload result sound to avoid disk I/O and garbage collection during critical render path
+    resultAudio = new Audio('./result.mp3');
+    resultAudio.addEventListener('error', () => {
+        console.warn('Result audio file not found.');
     });
 }
 
@@ -111,10 +118,17 @@ function stopSpinningSound() {
 // Play result/win sound effect
 function playResultSound() {
     try {
-        const winAudio = new Audio('./result.mp3');
-        winAudio.currentTime = 1;
-        winAudio.volume = 0.5;
-        winAudio.play().catch(err => console.error('Error playing result sound:', err));
+        // ⚡ Bolt: Use cached audio instance instead of instantiating new Audio() on every win to eliminate latency
+        if (resultAudio) {
+            resultAudio.currentTime = 1;
+            resultAudio.volume = 0.5;
+            resultAudio.play().catch(err => console.error('Error playing result sound:', err));
+        } else {
+            const winAudio = new Audio('./result.mp3');
+            winAudio.currentTime = 1;
+            winAudio.volume = 0.5;
+            winAudio.play().catch(err => console.error('Error playing result sound:', err));
+        }
     } catch (error) {
         console.error('Error playing result sound:', error);
     }
@@ -324,6 +338,20 @@ function spin(isRetry = false) {
     // Random final position
     const randomAngle = Math.random() * 2 * Math.PI;
     const finalRotation = rotation + totalRotation + randomAngle;
+
+    // ⚡ Bolt: Precalculate winning card and preload its image while spin animation plays
+    // Determine the predicted winning card by calculating where the pointer will end up
+    let predictedRotation = ((finalRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+    let predictedPointerAngle = (2 * Math.PI - predictedRotation - Math.PI / 2) % (2 * Math.PI);
+    if (predictedPointerAngle < 0) predictedPointerAngle += 2 * Math.PI;
+    const segmentAngle = (2 * Math.PI) / availableCards.length;
+    const predictedWinningIndex = Math.floor(predictedPointerAngle / segmentAngle) % availableCards.length;
+    const predictedCard = availableCards[predictedWinningIndex];
+    if (predictedCard) {
+        // Preload image over network during 5-8s spin animation to eliminate visual pop-in when showResult() runs
+        const img = new Image();
+        img.src = `cards/${RANK_MAP[predictedCard.rank]}_of_${SUIT_MAP[predictedCard.suitName]}.svg`;
+    }
 
     // Animation duration (5-8 seconds)
     const duration = 5000 + Math.random() * 3000;

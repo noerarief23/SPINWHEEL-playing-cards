@@ -4,3 +4,6 @@
 ## 2026-03-01 - Debouncing Canvas Resize and GPU Compositing
 **Learning:** Frequent window resize events trigger continuous and expensive canvas redraws (especially with text shadows and loop iterations), causing main thread blockages. Hardware-accelerated CSS transforms (`transform: rotate`) without `will-change: transform` can also lead to paint thrashing during spin animations if the element isn't promoted to a compositor layer.
 **Action:** Always debounce window resize events that trigger heavy calculations (like canvas redraws) using a short timeout (e.g., 150ms). Use `will-change: transform` on elements that undergo continuous CSS transform animations to ensure GPU compositing and smooth 60fps rendering without blocking the main thread.
+## 2026-07-13 - Preloading Assets During Long Animation
+**Learning:** During long, CSS-driven animations or multi-second timeouts (like the 5-8 second wheel spin), you can pre-calculate the visual result using the deterministic mathematical state to fetch remote network assets ahead of time, eliminating visual pop-in when the UI is finally updated.
+**Action:** When working on animated web games with deterministic outcomes, identify the earliest moment the result can be calculated, and proactively `new Image().src` or fetch resources during the animation gap instead of waiting for the render function to fire.
