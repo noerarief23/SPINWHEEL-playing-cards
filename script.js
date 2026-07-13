@@ -49,6 +49,7 @@ const customDeckSelect = document.getElementById('customDeckSelect');
 const addCustomCardBtn = document.getElementById('addCustomCardBtn');
 const clearCustomDeckBtn = document.getElementById('clearCustomDeckBtn');
 const customDeckList = document.getElementById('customDeckList');
+const wheelContainer = document.querySelector('.wheel-container');
 
 // Validate required elements exist
 if (!canvas || !ctx || !spinButton || !resultCard || !resultText ||
@@ -68,6 +69,7 @@ const MAX_RETRIES = 3;
 
 // Audio for sound effects
 let spinningAudio = null;
+let resultAudio = null; // ⚡ Bolt: Cache result audio instance
 
 // Preload audio files
 function preloadAudio() {
@@ -80,6 +82,12 @@ function preloadAudio() {
     // Handle audio load error
     spinningAudio.addEventListener('error', () => {
         console.warn('Drum roll audio file not found. Please add drumroll.mp3 to your project folder.');
+    });
+
+    // ⚡ Bolt: Preload result sound to avoid disk I/O and garbage collection during critical render path
+    resultAudio = new Audio('./result.mp3');
+    resultAudio.addEventListener('error', () => {
+        console.warn('Result audio file not found.');
     });
 }
 
@@ -110,125 +118,23 @@ function stopSpinningSound() {
 // Play result/win sound effect
 function playResultSound() {
     try {
-        const winAudio = new Audio('./result.mp3');
-        winAudio.currentTime = 1;
-        winAudio.volume = 0.5;
-        winAudio.play().catch(err => console.error('Error playing result sound:', err));
+        // ⚡ Bolt: Use cached audio instance instead of instantiating new Audio() on every win to eliminate latency
+        if (resultAudio) {
+            resultAudio.currentTime = 1;
+            resultAudio.volume = 0.5;
+            resultAudio.play().catch(err => console.error('Error playing result sound:', err));
+        } else {
+            const winAudio = new Audio('./result.mp3');
+            winAudio.currentTime = 1;
+            winAudio.volume = 0.5;
+            winAudio.play().catch(err => console.error('Error playing result sound:', err));
+        }
     } catch (error) {
         console.error('Error playing result sound:', error);
     }
 }
 
-// Fireworks animation
-class Firework {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.particles = [];
-        this.createParticles();
-    }
-    
-    createParticles() {
-        const targetParticleCount = 50 + Math.random() * 30;
-        const particleCount = Math.floor(targetParticleCount);
-        const colors = ['#ff1744', '#9c27b0', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b', '#ff9800', '#e91e63', '#00ff00', '#ff00ff'];
-        
-        for (let i = 0; i < particleCount; i++) {
-            const angle = (Math.PI * 2 * i) / particleCount;
-            const velocity = 3 + Math.random() * 4;
-            
-            this.particles.push({
-                x: this.x,
-                y: this.y,
-                vx: Math.cos(angle) * velocity,
-                vy: Math.sin(angle) * velocity,
-                life: 1.0,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                size: 3 + Math.random() * 4
-            });
-        }
-    }
-    
-    update() {
-        this.particles.forEach(particle => {
-            particle.x += particle.vx;
-            particle.y += particle.vy;
-            particle.vy += 0.1; // gravity
-            particle.life -= 0.02;
-        });
-        
-        // Remove dead particles
-        this.particles = this.particles.filter(p => p.life > 0);
-    }
-    
-    draw(ctx) {
-        this.particles.forEach(particle => {
-            ctx.save();
-            ctx.globalAlpha = particle.life;
-            ctx.fillStyle = particle.color;
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-        });
-    }
-    
-    isDead() {
-        return this.particles.length === 0;
-    }
-}
-
-let fireworksCanvas = null;
-let fireworksCtx = null;
-let fireworks = [];
-let fireworksAnimationId = null;
-let fireworksAutoStopTimeout = null;
-let fireworksCreationTimeouts = [];
-let fireworksResizeListenerAdded = false;
-
-// Create fireworks canvas overlay
-function createFireworksCanvas() {
-    if (!fireworksCanvas) {
-        fireworksCanvas = document.createElement('canvas');
-        fireworksCanvas.id = 'fireworksCanvas';
-        fireworksCanvas.style.position = 'fixed';
-        fireworksCanvas.style.top = '0';
-        fireworksCanvas.style.left = '0';
-        fireworksCanvas.style.width = '100%';
-        fireworksCanvas.style.height = '100%';
-        fireworksCanvas.style.pointerEvents = 'none'; // Don't block user interaction
-        fireworksCanvas.style.zIndex = '9999';
-        document.body.appendChild(fireworksCanvas);
-        fireworksCtx = fireworksCanvas.getContext('2d');
-        
-        // Set canvas size with device pixel ratio for crisp rendering
-        resizeFireworksCanvas();
-        
-        // Add resize listener only once
-        if (!fireworksResizeListenerAdded) {
-            window.addEventListener('resize', resizeFireworksCanvas);
-            fireworksResizeListenerAdded = true;
-        }
-    }
-    return fireworksCanvas;
-}
-
-// Resize fireworks canvas
-function resizeFireworksCanvas() {
-    if (fireworksCanvas) {
-        const dpr = window.devicePixelRatio || 1;
-        fireworksCanvas.width = window.innerWidth * dpr;
-        fireworksCanvas.height = window.innerHeight * dpr;
-        
-        // Reset transform and scale context for high DPI displays
-        if (fireworksCtx) {
-            fireworksCtx.setTransform(1, 0, 0, 1, 0, 0);
-            fireworksCtx.scale(dpr, dpr);
-        }
-    }
-}
-
-// Start fireworks animation
+// Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
     const duration = 3000;
     const animationEnd = Date.now() + duration;
@@ -256,53 +162,6 @@ function startFireworksAnimation() {
             origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
         }));
     }, 250);
-}
-
-// Animate fireworks
-function animateFireworks() {
-    if (!fireworksCtx) return;
-    
-    // Clear canvas with logical dimensions (CSS pixels)
-    const dpr = window.devicePixelRatio || 1;
-    fireworksCtx.clearRect(0, 0, fireworksCanvas.width / dpr, fireworksCanvas.height / dpr);
-    
-    // Update and draw fireworks
-    fireworks.forEach(firework => {
-        firework.update();
-        firework.draw(fireworksCtx);
-    });
-    
-    // Remove dead fireworks
-    fireworks = fireworks.filter(f => !f.isDead());
-    
-    // Continue animation if there are active fireworks
-    if (fireworks.length > 0) {
-        fireworksAnimationId = requestAnimationFrame(animateFireworks);
-    }
-}
-
-// Stop fireworks animation
-function stopFireworksAnimation() {
-    // Clear timeouts
-    if (fireworksAutoStopTimeout) {
-        clearTimeout(fireworksAutoStopTimeout);
-        fireworksAutoStopTimeout = null;
-    }
-    
-    fireworksCreationTimeouts.forEach(timeout => clearTimeout(timeout));
-    fireworksCreationTimeouts = [];
-    
-    if (fireworksAnimationId) {
-        cancelAnimationFrame(fireworksAnimationId);
-        fireworksAnimationId = null;
-    }
-    
-    if (fireworksCtx && fireworksCanvas) {
-        const dpr = window.devicePixelRatio || 1;
-        fireworksCtx.clearRect(0, 0, fireworksCanvas.width / dpr, fireworksCanvas.height / dpr);
-    }
-    
-    fireworks = [];
 }
 
 // Segment colors (grayscale)
@@ -381,7 +240,9 @@ function prerenderWheel() {
     offscreenCtx.save();
     offscreenCtx.translate(centerX, centerY);
 
-    // Draw segments
+    // ⚡ Bolt: Batch render segments to minimize canvas state changes
+    offscreenCtx.strokeStyle = '#ffffff';
+    offscreenCtx.lineWidth = 2;
     for (let i = 0; i < numSegments; i++) {
         const angle = i * anglePerSegment;
         const colorIndex = i % segmentColors.length;
@@ -393,22 +254,29 @@ function prerenderWheel() {
         offscreenCtx.closePath();
         offscreenCtx.fillStyle = segmentColors[colorIndex];
         offscreenCtx.fill();
-        offscreenCtx.strokeStyle = '#ffffff';
-        offscreenCtx.lineWidth = 2;
         offscreenCtx.stroke();
+    }
+
+    // ⚡ Bolt: Batch render text to minimize font/shadow state changes
+    offscreenCtx.textAlign = 'center';
+    offscreenCtx.textBaseline = 'middle';
+    offscreenCtx.fillStyle = '#ffffff';
+    offscreenCtx.font = 'bold 16px Arial';
+    offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    offscreenCtx.shadowBlur = 4;
+
+    for (let i = 0; i < numSegments; i++) {
+        const angle = i * anglePerSegment;
 
         // Draw card text
         offscreenCtx.save();
         offscreenCtx.rotate(angle + anglePerSegment / 2);
-        offscreenCtx.textAlign = 'center';
-        offscreenCtx.textBaseline = 'middle';
-        offscreenCtx.fillStyle = '#ffffff';
-        offscreenCtx.font = 'bold 16px Arial';
-        offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        offscreenCtx.shadowBlur = 4;
         offscreenCtx.fillText(availableCards[i].display, radius * 0.7, 0);
         offscreenCtx.restore();
     }
+
+    // Clear shadow for subsequent paths
+    offscreenCtx.shadowBlur = 0;
 
     // Draw center circle
     offscreenCtx.beginPath();
@@ -479,6 +347,20 @@ function spin(isRetry = false) {
     // Random final position
     const randomAngle = Math.random() * 2 * Math.PI;
     const finalRotation = rotation + totalRotation + randomAngle;
+
+    // ⚡ Bolt: Precalculate winning card and preload its image while spin animation plays
+    // Determine the predicted winning card by calculating where the pointer will end up
+    let predictedRotation = ((finalRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+    let predictedPointerAngle = (2 * Math.PI - predictedRotation - Math.PI / 2) % (2 * Math.PI);
+    if (predictedPointerAngle < 0) predictedPointerAngle += 2 * Math.PI;
+    const segmentAngle = (2 * Math.PI) / availableCards.length;
+    const predictedWinningIndex = Math.floor(predictedPointerAngle / segmentAngle) % availableCards.length;
+    const predictedCard = availableCards[predictedWinningIndex];
+    if (predictedCard) {
+        // Preload image over network during 5-8s spin animation to eliminate visual pop-in when showResult() runs
+        const img = new Image();
+        img.src = `cards/${RANK_MAP[predictedCard.rank]}_of_${SUIT_MAP[predictedCard.suitName]}.svg`;
+    }
 
     // Animation duration (5-8 seconds)
     const duration = 5000 + Math.random() * 3000;
@@ -564,24 +446,24 @@ function spin(isRetry = false) {
     animate();
 }
 
+const RANK_MAP = {
+    'A': 'ace', 'J': 'jack', 'Q': 'queen', 'K': 'king',
+    '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
+    '7': '7', '8': '8', '9': '9', '10': '10'
+};
+
+const SUIT_MAP = {
+    'Spades': 'spades', 'Hearts': 'hearts',
+    'Diamonds': 'diamonds', 'Clubs': 'clubs'
+};
+
 // Show result
 function showResult() {
     resultCard.innerHTML = '';
     
-    const rankMap = {
-        'A': 'ace', 'J': 'jack', 'Q': 'queen', 'K': 'king',
-        '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
-        '7': '7', '8': '8', '9': '9', '10': '10'
-    };
-    
-    const suitMap = {
-        'Spades': 'spades', 'Hearts': 'hearts',
-        'Diamonds': 'diamonds', 'Clubs': 'clubs'
-    };
-    
     const cardImage = document.createElement('img');
     cardImage.className = 'card-face-image';
-    cardImage.src = `cards/${rankMap[currentCard.rank]}_of_${suitMap[currentCard.suitName]}.svg`;
+    cardImage.src = `cards/${RANK_MAP[currentCard.rank]}_of_${SUIT_MAP[currentCard.suitName]}.svg`;
     cardImage.alt = `${getRankName(currentCard.rank)} of ${currentCard.suitName}`;
     resultCard.appendChild(cardImage);
     
@@ -598,15 +480,16 @@ function showResult() {
     resultText.textContent = `${rankName} of ${currentCard.suitName}!`;
 }
 
+const RANK_NAMES = {
+    'A': 'Ace',
+    'J': 'Jack',
+    'Q': 'Queen',
+    'K': 'King'
+};
+
 // Get full rank name
 function getRankName(rank) {
-    const rankNames = {
-        'A': 'Ace',
-        'J': 'Jack',
-        'Q': 'Queen',
-        'K': 'King'
-    };
-    return rankNames[rank] || rank;
+    return RANK_NAMES[rank] || rank;
 }
 
 // Update stats display
@@ -626,13 +509,23 @@ function updateCardSelect() {
     // Clear existing options except the first one
     cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
     
+    // Use DocumentFragment for performance
+    const fragment = document.createDocumentFragment();
+
     // Add options for all available cards
     availableCards.forEach((card, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        cardSelect.appendChild(option);
+        fragment.appendChild(option);
     });
+
+    cardSelect.appendChild(fragment);
+
+    // Also reset button state if it was enabled
+    if (markSelectedBtn) {
+        markSelectedBtn.disabled = true;
+    }
 }
 
 // Add card to history
@@ -659,8 +552,48 @@ function addToHistory(card) {
     historyItem.appendChild(cardDisplay);
     historyItem.appendChild(cardName);
     
+    // Remove empty state if it exists
+    const emptyState = cardHistoryDiv.querySelector('.empty-state');
+    if (emptyState) {
+        emptyState.remove();
+    }
+
     // Add at the top
     cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
+}
+
+// Helper to show inline feedback
+function showFeedback(button, message, isError = true) {
+    const originalText = button.dataset.originalText || button.textContent;
+    const originalColor = button.dataset.originalColor || button.style.color;
+
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = originalText;
+        button.dataset.originalColor = originalColor;
+    }
+
+    let liveRegion = button.nextElementSibling;
+    if (!liveRegion || !liveRegion.classList.contains('sr-only') || !liveRegion.hasAttribute('aria-live')) {
+        liveRegion = document.createElement('span');
+        liveRegion.className = 'sr-only';
+        liveRegion.setAttribute('aria-live', 'polite');
+        button.parentNode.insertBefore(liveRegion, button.nextSibling);
+    }
+
+    liveRegion.textContent = message;
+
+    button.textContent = message;
+    button.style.color = isError ? '#ff4444' : '#4CAF50';
+
+    if (button.feedbackTimeout) {
+        clearTimeout(button.feedbackTimeout);
+    }
+
+    button.feedbackTimeout = setTimeout(() => {
+        button.textContent = button.dataset.originalText;
+        button.style.color = button.dataset.originalColor;
+        liveRegion.textContent = '';
+    }, 3000);
 }
 
 // Mark selected card as drawn
@@ -668,20 +601,20 @@ function markSelectedCardAsDrawn() {
     const selectedIndex = cardSelect.value;
     
     if (selectedIndex === '') {
-        alert('Please select a card from the dropdown');
+        showFeedback(markSelectedBtn, 'Please select a card', true);
         return;
     }
     
     // Check if we would exceed maxCards
     if (drawnCards.length >= maxCards) {
-        alert('Cannot mark more cards. The configured deck limit has been reached.');
+        showFeedback(markSelectedBtn, 'Deck limit reached', true);
         return;
     }
     
     const index = parseInt(selectedIndex);
     
     if (index < 0 || index >= availableCards.length) {
-        alert('Invalid card selection');
+        showFeedback(markSelectedBtn, 'Invalid selection', true);
         return;
     }
     
@@ -700,7 +633,7 @@ function markSelectedCardAsDrawn() {
     cardSelect.value = '';
     
     // Show success feedback
-    alert(`Marked ${card.display} as drawn`);
+    showFeedback(markSelectedBtn, `Marked ${card.display}`, false);
 }
 
 // Reset the game
@@ -733,7 +666,7 @@ function resetGame() {
     currentCard = null;
     
     // Clear history
-    cardHistoryDiv.innerHTML = '';
+    cardHistoryDiv.innerHTML = '<div class="empty-state">No cards drawn yet</div>';
     
     // Update stats
     updateStats();
@@ -772,16 +705,58 @@ function handleCardCountChange() {
 }
 
 
+// Helper for inline button feedback
+function showButtonFeedback(button, message) {
+    // Store original text if not already stored to prevent overwriting during rapid clicks
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = button.textContent;
+    }
+    const originalText = button.dataset.originalText;
+    const originalDisabled = button.disabled;
+
+    // Clear existing timeout if any
+    if (button.dataset.feedbackTimeout) {
+        clearTimeout(parseInt(button.dataset.feedbackTimeout));
+    }
+
+    button.textContent = message;
+    button.disabled = true;
+
+    // Announce to screen reader
+    const originalAriaLabel = button.getAttribute('aria-label');
+    if (originalAriaLabel) {
+        button.setAttribute('aria-label', message);
+    }
+
+    const timeoutId = setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = originalDisabled;
+        if (originalAriaLabel) {
+            button.setAttribute('aria-label', originalAriaLabel);
+        }
+        delete button.dataset.feedbackTimeout;
+    }, 2000);
+
+    button.dataset.feedbackTimeout = timeoutId.toString();
+}
+
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
     customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
+    const fragment = document.createDocumentFragment();
     allCards.forEach((card, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        customDeckSelect.appendChild(option);
+        fragment.appendChild(option);
     });
+    customDeckSelect.appendChild(fragment);
+
+    // Reset button state
+    if (addCustomCardBtn) {
+        addCustomCardBtn.disabled = true;
+    }
 }
 
 function renderCustomDeckList() {
@@ -790,6 +765,8 @@ function renderCustomDeckList() {
         customDeckList.innerHTML = '<span style="color: #666; font-style: italic;">No cards added yet</span>';
         return;
     }
+
+    const fragment = document.createDocumentFragment();
 
     customDeckCards.forEach((card, index) => {
         const item = document.createElement('div');
@@ -807,8 +784,10 @@ function renderCustomDeckList() {
 
         item.appendChild(cardText);
         item.appendChild(removeBtn);
-        customDeckList.appendChild(item);
+        fragment.appendChild(item);
     });
+
+    customDeckList.appendChild(fragment);
 }
 
 function removeCustomCard(index) {
@@ -822,7 +801,7 @@ function removeCustomCard(index) {
 addCustomCardBtn.addEventListener('click', () => {
     const selectedIndex = customDeckSelect.value;
     if (selectedIndex === '') {
-        alert('Please select a card to add');
+        showFeedback(addCustomCardBtn, 'Select a card', true);
         return;
     }
 
@@ -830,17 +809,19 @@ addCustomCardBtn.addEventListener('click', () => {
 
     // Optional: prevent duplicates
     if (customDeckCards.some(c => c.display === card.display)) {
-        alert('Card is already in the custom deck');
+        showFeedback(addCustomCardBtn, 'Already added', true);
         return;
     }
 
     customDeckCards.push(card);
     customDeckSelect.value = '';
+    customDeckSelect.dispatchEvent(new Event('change')); // Trigger change to update disabled state
     renderCustomDeckList();
 
     if (cardCountSelect.value === 'custom-list') {
         resetGame();
     }
+    showFeedback(addCustomCardBtn, 'Added successfully', false);
 });
 
 clearCustomDeckBtn.addEventListener('click', () => {
@@ -850,6 +831,20 @@ clearCustomDeckBtn.addEventListener('click', () => {
         resetGame();
     }
 });
+
+// Disable buttons initially and enable on valid select
+cardSelect.addEventListener('change', () => {
+    markSelectedBtn.disabled = cardSelect.value === '';
+});
+// Set initial state
+markSelectedBtn.disabled = true;
+
+customDeckSelect.addEventListener('change', () => {
+    addCustomCardBtn.disabled = customDeckSelect.value === '';
+});
+// Set initial state
+addCustomCardBtn.disabled = true;
+
 
 // Initialize custom deck select
 populateCustomDeckSelect();
@@ -861,21 +856,61 @@ renderCustomDeckList();
 spinButton.addEventListener('click', () => {
     spin();
 });
+
+// Spacebar shortcut for spinning
+document.addEventListener('keydown', (e) => {
+    // Only trigger if spacebar is pressed
+    if (e.code === 'Space') {
+        // Prevent default scrolling behavior
+
+        // Don't trigger if user is interacting with form elements
+        const activeElement = document.activeElement;
+        const ignoreElements = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'];
+
+        if (activeElement && ignoreElements.includes(activeElement.tagName)) {
+            return; // Let the native element handle the spacebar
+        }
+
+        e.preventDefault();
+
+        // Trigger spin if not already spinning and button is not disabled
+        if (!isSpinning && !spinButton.disabled) {
+            spin();
+            // Provide visual feedback
+            spinButton.classList.add('active');
+            setTimeout(() => spinButton.classList.remove('active'), 150);
+        }
+    }
+});
+
 resetButton.addEventListener('click', resetGame);
 cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
 markSelectedBtn.addEventListener('click', markSelectedCardAsDrawn);
 
+// ⚡ Bolt: Debounce utility to prevent layout thrashing on rapid events
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 // Handle responsive canvas sizing
 function resizeCanvas() {
-    const container = document.querySelector('.wheel-container');
-    if (!container) {
+    // ⚡ Bolt: Use globally cached wheelContainer to avoid redundant DOM queries
+    if (!wheelContainer) {
         console.error('Wheel container not found');
         return;
     }
     
     // Use ONLY offsetWidth (aspect-ratio ensures 1:1)
-    let size = container.offsetWidth;
+    let size = wheelContainer.offsetWidth;
     
     // Fallback if offsetWidth is 0
     const CONTAINER_PADDING = 40;
@@ -917,8 +952,8 @@ function waitForLayout(callback) {
     const maxAttempts = 60; // Max 1 second wait
     
     function attempt() {
-        const container = document.querySelector('.wheel-container');
-        if (container && container.offsetWidth > 0) {
+        // ⚡ Bolt: Use cached wheelContainer
+        if (wheelContainer && wheelContainer.offsetWidth > 0) {
             callback();
         } else if (attempts < maxAttempts) {
             attempts++;

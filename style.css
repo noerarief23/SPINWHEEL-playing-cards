@@ -112,8 +112,13 @@ header {
     transition: all 0.3s ease;
 }
 
-.mark-button:hover {
+.mark-button:hover:not(:disabled) {
     background: #444444;
+}
+
+.mark-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Main Content Layout */
@@ -175,6 +180,7 @@ main {
     max-width: 100%;
     max-height: 100%;
     display: block;
+    will-change: transform; /* GPU compositing for smoother spin animations */
 }
 
 .wheel-pointer {
@@ -306,8 +312,10 @@ main {
     background: #cccccc;
 }
 
-.spin-button:active {
+.spin-button:active,
+.spin-button.active {
     transform: scale(0.95);
+    background: #cccccc;
 }
 
 .spin-button:disabled {
@@ -350,6 +358,18 @@ main {
     overflow-y: auto;
     margin-bottom: 15px;
     min-height: 200px;
+}
+
+.empty-state {
+    color: #666666;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 100px;
 }
 
 .history-item {
@@ -654,6 +674,16 @@ footer {
     }
 }
 
+/* Accessibility - Focus Styles */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
 /* Custom Deck Styles */
 .custom-deck-container {
     display: flex;
@@ -711,4 +741,30 @@ footer {
     outline: 2px solid #ffffff;
     outline-offset: 2px;
     border-radius: 2px;
+}
+
+/* Global Focus Visible for Keyboard Navigation */
+:focus-visible {
+    outline: 2px solid #00BCD4;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Keyboard Shortcut Hint */
+.keyboard-hint {
+    color: #666666;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    text-align: center;
+}
+
+.keyboard-hint kbd {
+    background: #333333;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    color: #cccccc;
+    box-shadow: 0 2px 0 #222222;
 }
