@@ -240,7 +240,9 @@ function prerenderWheel() {
     offscreenCtx.save();
     offscreenCtx.translate(centerX, centerY);
 
-    // Draw segments
+    // ⚡ Bolt: Batch render segments to minimize canvas state changes
+    offscreenCtx.strokeStyle = '#ffffff';
+    offscreenCtx.lineWidth = 2;
     for (let i = 0; i < numSegments; i++) {
         const angle = i * anglePerSegment;
         const colorIndex = i % segmentColors.length;
@@ -252,22 +254,29 @@ function prerenderWheel() {
         offscreenCtx.closePath();
         offscreenCtx.fillStyle = segmentColors[colorIndex];
         offscreenCtx.fill();
-        offscreenCtx.strokeStyle = '#ffffff';
-        offscreenCtx.lineWidth = 2;
         offscreenCtx.stroke();
+    }
+
+    // ⚡ Bolt: Batch render text to minimize font/shadow state changes
+    offscreenCtx.textAlign = 'center';
+    offscreenCtx.textBaseline = 'middle';
+    offscreenCtx.fillStyle = '#ffffff';
+    offscreenCtx.font = 'bold 16px Arial';
+    offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    offscreenCtx.shadowBlur = 4;
+
+    for (let i = 0; i < numSegments; i++) {
+        const angle = i * anglePerSegment;
 
         // Draw card text
         offscreenCtx.save();
         offscreenCtx.rotate(angle + anglePerSegment / 2);
-        offscreenCtx.textAlign = 'center';
-        offscreenCtx.textBaseline = 'middle';
-        offscreenCtx.fillStyle = '#ffffff';
-        offscreenCtx.font = 'bold 16px Arial';
-        offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        offscreenCtx.shadowBlur = 4;
         offscreenCtx.fillText(availableCards[i].display, radius * 0.7, 0);
         offscreenCtx.restore();
     }
+
+    // Clear shadow for subsequent paths
+    offscreenCtx.shadowBlur = 0;
 
     // Draw center circle
     offscreenCtx.beginPath();
