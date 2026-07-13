@@ -553,25 +553,59 @@ function addToHistory(card) {
     cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
 }
 
+// Helper to show inline feedback
+function showFeedback(button, message, isError = true) {
+    const originalText = button.dataset.originalText || button.textContent;
+    const originalColor = button.dataset.originalColor || button.style.color;
+
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = originalText;
+        button.dataset.originalColor = originalColor;
+    }
+
+    let liveRegion = button.nextElementSibling;
+    if (!liveRegion || !liveRegion.classList.contains('sr-only') || !liveRegion.hasAttribute('aria-live')) {
+        liveRegion = document.createElement('span');
+        liveRegion.className = 'sr-only';
+        liveRegion.setAttribute('aria-live', 'polite');
+        button.parentNode.insertBefore(liveRegion, button.nextSibling);
+    }
+
+    liveRegion.textContent = message;
+
+    button.textContent = message;
+    button.style.color = isError ? '#ff4444' : '#4CAF50';
+
+    if (button.feedbackTimeout) {
+        clearTimeout(button.feedbackTimeout);
+    }
+
+    button.feedbackTimeout = setTimeout(() => {
+        button.textContent = button.dataset.originalText;
+        button.style.color = button.dataset.originalColor;
+        liveRegion.textContent = '';
+    }, 3000);
+}
+
 // Mark selected card as drawn
 function markSelectedCardAsDrawn() {
     const selectedIndex = cardSelect.value;
     
     if (selectedIndex === '') {
-        showButtonFeedback(markSelectedBtn, 'Please select a card');
+        showFeedback(markSelectedBtn, 'Please select a card', true);
         return;
     }
     
     // Check if we would exceed maxCards
     if (drawnCards.length >= maxCards) {
-        showButtonFeedback(markSelectedBtn, 'Deck limit reached');
+        showFeedback(markSelectedBtn, 'Deck limit reached', true);
         return;
     }
     
     const index = parseInt(selectedIndex);
     
     if (index < 0 || index >= availableCards.length) {
-        showButtonFeedback(markSelectedBtn, 'Invalid selection');
+        showFeedback(markSelectedBtn, 'Invalid selection', true);
         return;
     }
     
@@ -590,7 +624,7 @@ function markSelectedCardAsDrawn() {
     cardSelect.value = '';
     
     // Show success feedback
-    alert(`Marked ${card.display} as drawn`);
+    showFeedback(markSelectedBtn, `Marked ${card.display}`, false);
 }
 
 // Reset the game
@@ -758,7 +792,7 @@ function removeCustomCard(index) {
 addCustomCardBtn.addEventListener('click', () => {
     const selectedIndex = customDeckSelect.value;
     if (selectedIndex === '') {
-        showButtonFeedback(addCustomCardBtn, 'Please select a card');
+        showFeedback(addCustomCardBtn, 'Select a card', true);
         return;
     }
 
@@ -766,7 +800,7 @@ addCustomCardBtn.addEventListener('click', () => {
 
     // Optional: prevent duplicates
     if (customDeckCards.some(c => c.display === card.display)) {
-        showButtonFeedback(addCustomCardBtn, 'Already added');
+        showFeedback(addCustomCardBtn, 'Already added', true);
         return;
     }
 
@@ -778,8 +812,7 @@ addCustomCardBtn.addEventListener('click', () => {
     if (cardCountSelect.value === 'custom-list') {
         resetGame();
     }
-
-    showButtonFeedback(addCustomCardBtn, 'Added!');
+    showFeedback(addCustomCardBtn, 'Added successfully', false);
 });
 
 clearCustomDeckBtn.addEventListener('click', () => {
