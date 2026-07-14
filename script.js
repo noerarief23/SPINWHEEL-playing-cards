@@ -265,15 +265,17 @@ function prerenderWheel() {
     offscreenCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     offscreenCtx.shadowBlur = 4;
 
-    for (let i = 0; i < numSegments; i++) {
-        const angle = i * anglePerSegment;
+    // ⚡ Bolt: Accumulate rotation to avoid 104 save/restore calls per render
+    offscreenCtx.save();
+    offscreenCtx.rotate(anglePerSegment / 2);
 
+    for (let i = 0; i < numSegments; i++) {
         // Draw card text
-        offscreenCtx.save();
-        offscreenCtx.rotate(angle + anglePerSegment / 2);
         offscreenCtx.fillText(availableCards[i].display, radius * 0.7, 0);
-        offscreenCtx.restore();
+        offscreenCtx.rotate(anglePerSegment);
     }
+
+    offscreenCtx.restore();
 
     // Clear shadow for subsequent paths
     offscreenCtx.shadowBlur = 0;
