@@ -17,3 +17,7 @@
 ## 2026-07-13 - Preloading Assets During Long Animation
 **Learning:** During long, CSS-driven animations or multi-second timeouts (like the 5-8 second wheel spin), you can pre-calculate the visual result using the deterministic mathematical state to fetch remote network assets ahead of time, eliminating visual pop-in when the UI is finally updated.
 **Action:** When working on animated web games with deterministic outcomes, identify the earliest moment the result can be calculated, and proactively `new Image().src` or fetch resources during the animation gap instead of waiting for the render function to fire.
+
+## 2026-07-14 - Accumulating Canvas Transforms
+**Learning:** Calling `save()` and `restore()` repeatedly inside a tight render loop (like rendering 52 pieces of text around a wheel) causes a large amount of overhead from Canvas API state stack thrashing.
+**Action:** When rendering elements along an arc or path that require incremental rotation or translation, apply the transform cumulatively inside the loop and wrap the entire loop in a single `save()` and `restore()` block instead.
