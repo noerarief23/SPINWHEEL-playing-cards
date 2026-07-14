@@ -859,6 +859,56 @@ spinButton.addEventListener('click', () => {
     spin();
 });
 
+// Inline confirmation for destructive reset action
+let resetConfirmTimeout;
+function handleResetClick(e) {
+    // Store original markup and text if not already stored
+    if (!resetButton.dataset.originalHtml) {
+        resetButton.dataset.originalHtml = resetButton.innerHTML;
+    }
+    const hasOriginalAriaLabel = resetButton.dataset.hasOriginalAriaLabel === 'true' || resetButton.hasAttribute('aria-label');
+    resetButton.dataset.hasOriginalAriaLabel = hasOriginalAriaLabel.toString();
+
+    if (hasOriginalAriaLabel && !resetButton.dataset.originalAriaLabel) {
+        resetButton.dataset.originalAriaLabel = resetButton.getAttribute('aria-label');
+    }
+
+    if (resetButton.dataset.confirming === 'true') {
+        // Second click - execute reset
+        clearTimeout(resetConfirmTimeout);
+        resetButton.dataset.confirming = 'false';
+        resetButton.innerHTML = resetButton.dataset.originalHtml;
+        if (hasOriginalAriaLabel) {
+            resetButton.setAttribute('aria-label', resetButton.dataset.originalAriaLabel);
+        } else {
+            resetButton.removeAttribute('aria-label');
+        }
+        resetGame();
+    } else {
+        // First click - ask for confirmation using showFeedback helper style approach
+        // to avoid custom inline CSS
+        resetButton.dataset.confirming = 'true';
+        resetButton.innerHTML = '⚠️ Confirm Reset?';
+
+        // Ensure screen readers announce this change
+        resetButton.setAttribute('aria-label', 'Click again to confirm reset');
+        if (!resetButton.hasAttribute('aria-live')) {
+            resetButton.setAttribute('aria-live', 'polite');
+        }
+
+        // Revert back after 3 seconds if not confirmed
+        resetConfirmTimeout = setTimeout(() => {
+            resetButton.dataset.confirming = 'false';
+            resetButton.innerHTML = resetButton.dataset.originalHtml;
+            if (hasOriginalAriaLabel) {
+                resetButton.setAttribute('aria-label', resetButton.dataset.originalAriaLabel);
+            } else {
+                resetButton.removeAttribute('aria-label');
+            }
+        }, 3000);
+    }
+}
+
 // Spacebar shortcut for spinning
 document.addEventListener('keydown', (e) => {
     // Only trigger if spacebar is pressed
@@ -885,7 +935,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-resetButton.addEventListener('click', resetGame);
+resetButton.addEventListener('click', handleResetClick);
 cardCountSelect.addEventListener('change', handleCardCountChange);
 customCardCountInput.addEventListener('change', resetGame);
 markSelectedBtn.addEventListener('click', markSelectedCardAsDrawn);
