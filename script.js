@@ -240,19 +240,26 @@ function prerenderWheel() {
     offscreenCtx.save();
     offscreenCtx.translate(centerX, centerY);
 
-    // ⚡ Bolt: Batch render segments to minimize canvas state changes
+    // ⚡ Bolt: Batch render segments by color to minimize canvas context state changes
     offscreenCtx.strokeStyle = '#ffffff';
     offscreenCtx.lineWidth = 2;
-    for (let i = 0; i < numSegments; i++) {
-        const angle = i * anglePerSegment;
-        const colorIndex = i % segmentColors.length;
 
-        // Draw segment
-        offscreenCtx.beginPath();
-        offscreenCtx.moveTo(0, 0);
-        offscreenCtx.arc(0, 0, radius, angle, angle + anglePerSegment);
-        offscreenCtx.closePath();
+    // Use the actual number of colors needed based on current segments
+    const activeColorsCount = Math.min(segmentColors.length, numSegments);
+
+    for (let colorIndex = 0; colorIndex < activeColorsCount; colorIndex++) {
         offscreenCtx.fillStyle = segmentColors[colorIndex];
+        offscreenCtx.beginPath();
+
+        for (let i = 0; i < numSegments; i++) {
+            if (i % segmentColors.length === colorIndex) {
+                const angle = i * anglePerSegment;
+                offscreenCtx.moveTo(0, 0);
+                offscreenCtx.arc(0, 0, radius, angle, angle + anglePerSegment);
+                offscreenCtx.closePath();
+            }
+        }
+
         offscreenCtx.fill();
         offscreenCtx.stroke();
     }
