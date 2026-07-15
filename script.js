@@ -334,6 +334,8 @@ function spin(isRetry = false) {
 
     isSpinning = true;
     spinButton.disabled = true;
+    const btnText = spinButton.querySelector('.button-text');
+    if (btnText) btnText.textContent = 'SPINNING...';
     resultCard.classList.remove('show');
     resultText.textContent = 'Spinning...';
 
@@ -422,6 +424,8 @@ function spin(isRetry = false) {
                     resultText.textContent = `Spin failed after ${MAX_RETRIES} attempts. Please try spinning again manually.`;
                     isSpinning = false;
                     spinButton.disabled = false;
+                    const btnText = spinButton.querySelector('.button-text');
+                    if (btnText) btnText.textContent = 'SPIN';
                     retryCount = 0; // Reset for next attempt
                     return;
                 }
@@ -441,7 +445,12 @@ function spin(isRetry = false) {
             // Show result
             showResult();
             isSpinning = false;
-            spinButton.disabled = false;
+            // Note: We don't enable the button here if availableCards.length === 0,
+            // updateStats() inside animate() handles the 'NO CARDS' state.
+            // However, updateStats() is called before the animation finishes.
+            // Let's call updateStats() here again to ensure the button state is correct
+            // after the spin ends.
+            updateStats();
         }
     }
 
@@ -504,6 +513,18 @@ function updateStats() {
     
     // Update the card select dropdown
     updateCardSelect();
+
+    // Update spin button state
+    const btnText = spinButton.querySelector('.button-text');
+    if (availableCards.length === 0) {
+        spinButton.disabled = true;
+        if (btnText) btnText.textContent = 'NO CARDS';
+        spinButton.title = 'Deck is empty, please reset';
+    } else if (!isSpinning) {
+        spinButton.disabled = false;
+        if (btnText) btnText.textContent = 'SPIN';
+        spinButton.removeAttribute('title');
+    }
 }
 
 // Update the card select dropdown with available cards
@@ -679,7 +700,7 @@ function resetGame() {
     
     // Reset spin state and re-enable button
     isSpinning = false;
-    spinButton.disabled = false;
+    // We let updateStats() handle enabling the button and resetting text
     
     // Redraw wheel
     needsRedraw = true;
@@ -764,7 +785,7 @@ function populateCustomDeckSelect() {
 function renderCustomDeckList() {
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<span style="color: #666; font-style: italic;">No cards added yet</span>';
+        customDeckList.innerHTML = '<span style="color: #999; font-style: italic;">No cards added yet</span>';
         return;
     }
 
@@ -837,15 +858,27 @@ clearCustomDeckBtn.addEventListener('click', () => {
 // Disable buttons initially and enable on valid select
 cardSelect.addEventListener('change', () => {
     markSelectedBtn.disabled = cardSelect.value === '';
+    if (markSelectedBtn.disabled) {
+        markSelectedBtn.title = 'Select a card first';
+    } else {
+        markSelectedBtn.removeAttribute('title');
+    }
 });
 // Set initial state
 markSelectedBtn.disabled = true;
+markSelectedBtn.title = 'Select a card first';
 
 customDeckSelect.addEventListener('change', () => {
     addCustomCardBtn.disabled = customDeckSelect.value === '';
+    if (addCustomCardBtn.disabled) {
+        addCustomCardBtn.title = 'Select a card first';
+    } else {
+        addCustomCardBtn.removeAttribute('title');
+    }
 });
 // Set initial state
 addCustomCardBtn.disabled = true;
+addCustomCardBtn.title = 'Select a card first';
 
 
 // Initialize custom deck select
