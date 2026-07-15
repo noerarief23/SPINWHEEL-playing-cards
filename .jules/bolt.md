@@ -21,3 +21,6 @@
 ## 2026-07-14 - Accumulating Canvas Transforms
 **Learning:** Calling `save()` and `restore()` repeatedly inside a tight render loop (like rendering 52 pieces of text around a wheel) causes a large amount of overhead from Canvas API state stack thrashing.
 **Action:** When rendering elements along an arc or path that require incremental rotation or translation, apply the transform cumulatively inside the loop and wrap the entire loop in a single `save()` and `restore()` block instead.
+## 2026-07-15 - Grouping Canvas Path Rendering by Fill Color
+**Learning:** In canvas rendering, calling `ctx.fill()` and `ctx.stroke()` for every single segment (52 times in `prerenderWheel`) introduces significant overhead due to context state changes and repeated draw calls. Interleaving these drawing commands in a single segment-by-segment loop is an anti-pattern.
+**Action:** When drawing multiple shapes that share the same color or style, invert the rendering logic: iterate over the unique colors/styles first, begin a single path (`ctx.beginPath()`), loop over the data to construct all path segments matching that color, and execute a single `ctx.fill()` and `ctx.stroke()` per unique color. This dramatically reduces draw calls and state switches.
