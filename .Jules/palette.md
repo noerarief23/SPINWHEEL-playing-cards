@@ -25,3 +25,7 @@
 ## 2024-03-24 - Inline Destructive Action Confirmation
 **Learning:** For destructive actions (like clearing game state), using non-blocking inline state changes (e.g. changing text to "Confirm?" and utilizing aria-live) prevents accidental data loss without breaking user flow or triggering intrusive native confirm() dialogs.
 **Action:** Implement similar 2-step click patterns for reset/delete actions where screen real-estate is limited and native dialogs are undesirable.
+
+## 2026-07-15 - Contextual Disabled State Feedback
+**Learning:** Found that when buttons become disabled implicitly (like the spin button when the deck empties, or the mark card buttons when nothing is selected), users are often left wondering *why* the interaction is blocked. Relying purely on a visual grayed-out state isn't enough, especially for users relying on screen readers or those unfamiliar with the app's logical constraints.
+**Action:** Always provide explicit context for disabled states. For icon-only or primary action buttons, update the button text itself (e.g., "SPIN" -> "NO CARDS") and supplement it with a `title` attribute explaining the blocked state to provide a clear, discoverable reason.
