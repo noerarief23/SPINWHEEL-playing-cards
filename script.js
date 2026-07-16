@@ -792,7 +792,7 @@ function populateCustomDeckSelect() {
 function renderCustomDeckList() {
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<span style="color: #999; font-style: italic;">No cards added yet</span>';
+        customDeckList.innerHTML = '<span style="color: #999; font-style: italic;">No cards added yet. Select a card above to build your custom deck.</span>';
         return;
     }
 
@@ -854,11 +854,52 @@ addCustomCardBtn.addEventListener('click', () => {
     showFeedback(addCustomCardBtn, 'Added successfully', false);
 });
 
-clearCustomDeckBtn.addEventListener('click', () => {
-    customDeckCards = [];
-    renderCustomDeckList();
-    if (cardCountSelect.value === 'custom-list') {
-        resetGame();
+let clearDeckConfirmTimeout;
+clearCustomDeckBtn.addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    if (!btn.dataset.originalHtml) {
+        btn.dataset.originalHtml = btn.innerHTML;
+    }
+    const hasOriginalAriaLabel = btn.dataset.hasOriginalAriaLabel === 'true' || btn.hasAttribute('aria-label');
+    btn.dataset.hasOriginalAriaLabel = hasOriginalAriaLabel.toString();
+
+    if (hasOriginalAriaLabel && !btn.dataset.originalAriaLabel) {
+        btn.dataset.originalAriaLabel = btn.getAttribute('aria-label');
+    }
+
+    if (btn.dataset.confirming === 'true') {
+        clearTimeout(clearDeckConfirmTimeout);
+        btn.dataset.confirming = 'false';
+        btn.innerHTML = btn.dataset.originalHtml;
+        if (hasOriginalAriaLabel) {
+            btn.setAttribute('aria-label', btn.dataset.originalAriaLabel);
+        } else {
+            btn.removeAttribute('aria-label');
+        }
+
+        customDeckCards = [];
+        renderCustomDeckList();
+        if (cardCountSelect.value === 'custom-list') {
+            resetGame();
+        }
+    } else {
+        btn.dataset.confirming = 'true';
+        btn.innerHTML = '⚠️ Confirm Clear?';
+
+        btn.setAttribute('aria-label', 'Click again to confirm clearing custom deck');
+        if (!btn.hasAttribute('aria-live')) {
+            btn.setAttribute('aria-live', 'polite');
+        }
+
+        clearDeckConfirmTimeout = setTimeout(() => {
+            btn.dataset.confirming = 'false';
+            btn.innerHTML = btn.dataset.originalHtml;
+            if (hasOriginalAriaLabel) {
+                btn.setAttribute('aria-label', btn.dataset.originalAriaLabel);
+            } else {
+                btn.removeAttribute('aria-label');
+            }
+        }, 3000);
     }
 });
 
