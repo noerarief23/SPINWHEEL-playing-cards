@@ -251,13 +251,13 @@ function prerenderWheel() {
         offscreenCtx.fillStyle = segmentColors[colorIndex];
         offscreenCtx.beginPath();
 
-        for (let i = 0; i < numSegments; i++) {
-            if (i % segmentColors.length === colorIndex) {
-                const angle = i * anglePerSegment;
-                offscreenCtx.moveTo(0, 0);
-                offscreenCtx.arc(0, 0, radius, angle, angle + anglePerSegment);
-                offscreenCtx.closePath();
-            }
+        // ⚡ Bolt: Use a stepped loop (i += segmentColors.length) instead of checking i % length
+        // This converts O(M*N) complexity to O(N), eliminating unnecessary iterations and modulo ops
+        for (let i = colorIndex; i < numSegments; i += segmentColors.length) {
+            const angle = i * anglePerSegment;
+            offscreenCtx.moveTo(0, 0);
+            offscreenCtx.arc(0, 0, radius, angle, angle + anglePerSegment);
+            offscreenCtx.closePath();
         }
 
         offscreenCtx.fill();
