@@ -339,6 +339,8 @@ function spin(isRetry = false) {
         retryCount = 0;
     }
 
+    const wasFocused = document.activeElement === spinButton;
+
     isSpinning = true;
     spinButton.disabled = true;
     const btnText = spinButton.querySelector('.button-text');
@@ -459,6 +461,15 @@ function spin(isRetry = false) {
             // Let's call updateStats() here again to ensure the button state is correct
             // after the spin ends.
             updateStats();
+
+            // Restore focus if the spin button was focused before the spin
+            if (wasFocused) {
+                if (!spinButton.disabled) {
+                    spinButton.focus();
+                } else {
+                    resetButton.focus(); // Fallback to reset button if deck is empty
+                }
+            }
         }
     }
 
@@ -483,7 +494,8 @@ function showResult() {
     const cardImage = document.createElement('img');
     cardImage.className = 'card-face-image';
     cardImage.src = `cards/${RANK_MAP[currentCard.rank]}_of_${SUIT_MAP[currentCard.suitName]}.svg`;
-    cardImage.alt = `${getRankName(currentCard.rank)} of ${currentCard.suitName}`;
+    cardImage.alt = ""; // Empty alt text since the aria-live text contains the same info
+    cardImage.setAttribute('aria-hidden', 'true');
     resultCard.appendChild(cardImage);
     
     resultCard.className = 'result-card';
@@ -697,7 +709,7 @@ function resetGame() {
     currentCard = null;
     
     // Clear history
-    cardHistoryDiv.innerHTML = '<div class="empty-state">No cards drawn yet</div>';
+    cardHistoryDiv.innerHTML = '<div class="empty-state">No cards drawn yet. Spin the wheel to get started!</div>';
     
     // Update stats
     updateStats();
