@@ -375,12 +375,13 @@ function spin(isRetry = false) {
 
     // Animation duration (5-8 seconds)
     const duration = 5000 + Math.random() * 3000;
-    const startTime = Date.now();
+    let startTime = null;
     const startRotation = rotation;
 
-    function animate() {
-        const currentTime = Date.now();
-        const elapsed = currentTime - startTime;
+    // ⚡ Bolt: Use rAF timestamp instead of Date.now() to avoid system calls on every frame
+    function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
         // Easing function (ease-out cubic)

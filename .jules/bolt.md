@@ -27,3 +27,6 @@
 ## 2026-07-16 - O(M*N) Loop Complexity in Canvas Segment Rendering
 **Learning:** In the `prerenderWheel` function, iterating over the total number of segments within an outer loop for unique colors, and checking `if (i % colors.length === colorIndex)` creates an O(M*N) nested loop complexity where it does nothing for most iterations.
 **Action:** When grouping rendering paths by a cyclic property like colors, use a stepped loop (e.g., `for (let i = colorIndex; i < numSegments; i += colors.length)`) instead of checking modulo on every iteration. This reduces complexity to O(N) and eliminates the modulo operation entirely.
+## 2026-07-17 - requestAnimationFrame Timestamp Optimization
+**Learning:** Calling `Date.now()` multiple times inside a fast-firing animation loop like `requestAnimationFrame` introduces unnecessary overhead due to system clock calls. `requestAnimationFrame` inherently passes a high-resolution timestamp as an argument to its callback.
+**Action:** Always use the `timestamp` parameter provided by the `requestAnimationFrame` callback instead of calling `Date.now()` to track elapsed time in animation loops. This eliminates redundant system calls from the hot path.
