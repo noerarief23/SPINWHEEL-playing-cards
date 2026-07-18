@@ -32,3 +32,7 @@
 ## 2024-05-18 - Prevent Accidental Deletion in Custom Deck
 **Learning:** Destructive actions without confirmation (like clearing a carefully built custom deck) can lead to frustrating data loss, and the app's components need consistent protection against accidental clicks.
 **Action:** Always implement an inline confirmation pattern (or similar safety check) for destructive actions that erase user-configured state, ensuring accessibility tags are updated to announce the confirmation state to screen readers.
+
+## 2024-05-18 - Disable Destructive Actions for Empty States
+**Learning:** Destructive actions (like "Clear Deck") left enabled when there is no state to destroy can cause user confusion, as they may attempt an action that does nothing. This lack of feedback makes the interface feel unresponsive.
+**Action:** Always disable destructive action buttons when there is no state to act upon, and provide explicit context for the disabled state via a `title` attribute (e.g., 'Custom deck is already empty') so users understand why the action is blocked.

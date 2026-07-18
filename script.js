@@ -793,7 +793,16 @@ function renderCustomDeckList() {
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
         customDeckList.innerHTML = '<span style="color: #999; font-style: italic;">No cards added yet. Select a card above to build your custom deck.</span>';
+        if (clearCustomDeckBtn) {
+            clearCustomDeckBtn.disabled = true;
+            clearCustomDeckBtn.title = 'Custom deck is already empty';
+        }
         return;
+    }
+
+    if (clearCustomDeckBtn) {
+        clearCustomDeckBtn.disabled = false;
+        clearCustomDeckBtn.removeAttribute('title');
     }
 
     const fragment = document.createDocumentFragment();
