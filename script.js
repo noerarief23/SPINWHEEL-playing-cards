@@ -442,6 +442,10 @@ function spin(isRetry = false) {
             availableCards.splice(winningIndex, 1);
             drawnCards.push(currentCard);
             
+            // ⚡ Bolt: Set state before calling updateStats to batch DOM updates
+            // and eliminate redundant UI reflows that rebuild the 52-item select list
+            isSpinning = false;
+
             // Update UI
             updateStats();
             addToHistory(currentCard);
@@ -451,13 +455,6 @@ function spin(isRetry = false) {
 
             // Show result
             showResult();
-            isSpinning = false;
-            // Note: We don't enable the button here if availableCards.length === 0,
-            // updateStats() inside animate() handles the 'NO CARDS' state.
-            // However, updateStats() is called before the animation finishes.
-            // Let's call updateStats() here again to ensure the button state is correct
-            // after the spin ends.
-            updateStats();
         }
     }
 
