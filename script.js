@@ -806,8 +806,13 @@ function renderCustomDeckList() {
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
         customDeckList.innerHTML = '<span style="color: #999; font-style: italic;">No cards added yet. Select a card above to build your custom deck.</span>';
+        clearCustomDeckBtn.disabled = true;
+        clearCustomDeckBtn.title = 'Deck is already empty';
         return;
     }
+
+    clearCustomDeckBtn.disabled = false;
+    clearCustomDeckBtn.removeAttribute('title');
 
     const fragment = document.createDocumentFragment();
 
@@ -940,7 +945,8 @@ customDeckSelect.addEventListener('change', () => {
 // Set initial state
 addCustomCardBtn.disabled = true;
 addCustomCardBtn.title = 'Select a card first';
-
+clearCustomDeckBtn.disabled = true;
+clearCustomDeckBtn.title = 'Deck is already empty';
 
 // Initialize custom deck select
 populateCustomDeckSelect();
