@@ -465,6 +465,10 @@ function spin(isRetry = false) {
             availableCards.splice(winningIndex, 1);
             drawnCards.push(currentCard);
             
+            // ⚡ Bolt: Set state before calling updateStats to batch DOM updates
+            // and eliminate redundant UI reflows that rebuild the 52-item select list
+            isSpinning = false;
+
             // Update UI
             updateStats();
             addToHistory(currentCard);
