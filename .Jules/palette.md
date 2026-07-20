@@ -32,3 +32,15 @@
 ## 2024-05-18 - Prevent Accidental Deletion in Custom Deck
 **Learning:** Destructive actions without confirmation (like clearing a carefully built custom deck) can lead to frustrating data loss, and the app's components need consistent protection against accidental clicks.
 **Action:** Always implement an inline confirmation pattern (or similar safety check) for destructive actions that erase user-configured state, ensuring accessibility tags are updated to announce the confirmation state to screen readers.
+
+## 2026-07-20 - Managing Focus During Async States and Redundant ARIA Live Announcements
+**Learning:** Found two accessibility patterns:
+1. When a button (like "Spin") is disabled during an asynchronous action (like an animation), screen reader users can lose focus entirely if focus is left on the disabled element. Focus should be deliberately managed and returned to a logical interactive element once the action completes.
+2. When inserting content into an `aria-live` region, if an image with `alt` text is added alongside text content that says the same thing, screen readers will redundantly announce the result twice.
+**Action:**
+- Always save the `document.activeElement` before initiating an async state that disables the active element, and restore it (or provide a logical fallback) upon completion.
+- Set `alt=""` and `aria-hidden="true"` on images injected into `aria-live` regions when their meaning is already conveyed by adjacent text.
+
+## 2026-07-19 - Contextual Disabled States for Empty Actions
+**Learning:** Relying solely on visual grayed-out states for empty states is confusing. Explicit context should be provided using title attributes.
+**Action:** Always provide explicit disabled state context using title attributes and disable destructive actions when there is no state to act upon.

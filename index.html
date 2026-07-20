@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spinwheel Playing Cards</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -28,9 +27,9 @@
                             <div id="resultText" class="result-text">Spin the wheel to get a card!</div>
                         </div>
 
-                        <button id="spinButton" class="spin-button">
+                        <button id="spinButton" class="spin-button" aria-keyshortcuts="Space">
                             <span class="button-text">SPIN</span>
-                            <span class="button-glow"></span>
+                            <span class="button-glow" aria-hidden="true"></span>
                         </button>
                         <div class="keyboard-hint" aria-hidden="true">Press <kbd>Space</kbd> to spin</div>
                     </div>
@@ -40,7 +39,7 @@
             <aside class="history-panel">
                 <h3>Card History</h3>
                 <div id="cardHistory" class="card-history-list">
-                    <div class="empty-state">No cards drawn yet</div>
+                    <div class="empty-state">No cards drawn yet. Spin the wheel to get started!</div>
                 </div>
                 <div class="stats">
                     <p>Remaining: <span id="remainingCount">52</span></p>
@@ -88,7 +87,7 @@
 
         <!-- Reset Button -->
         <button id="resetButton" class="reset-button" aria-label="Reset game">
-            <span>↻</span> Reset
+            <span aria-hidden="true">↻</span> Reset
         </button>
 
         <footer>
