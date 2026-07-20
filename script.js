@@ -136,6 +136,12 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
+    // ⚡ Bolt: Check if confetti is loaded to prevent errors
+    if (typeof confetti !== 'function') {
+        console.warn('Confetti library not loaded, skipping fireworks animation.');
+        return;
+    }
+
     const duration = 3000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
@@ -351,6 +357,16 @@ function spin(isRetry = false) {
     // Play spinning sound effect
     playSpinningSound();
 
+    // ⚡ Bolt: Lazy-load confetti library during 5-8s idle animation time
+    // This removes 30KB+ from critical rendering path and delays execution until needed
+    if (!window.confettiScriptLoaded) {
+        window.confettiScriptLoaded = true;
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+        script.async = true;
+        document.body.appendChild(script);
+    }
+
     // Random spin parameters
     const minSpins = 5;
     const maxSpins = 8;
@@ -382,6 +398,7 @@ function spin(isRetry = false) {
 
     // ⚡ Bolt: Use rAF timestamp instead of Date.now() to avoid system calls on every frame
     function animate(timestamp) {
+        if (!timestamp) timestamp = performance.now();
         if (!startTime) startTime = timestamp;
         const elapsed = timestamp - startTime;
         const progress = Math.min(elapsed / duration, 1);
@@ -473,7 +490,7 @@ function spin(isRetry = false) {
         }
     }
 
-    animate();
+    requestAnimationFrame(animate);
 }
 
 const RANK_MAP = {
