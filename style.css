@@ -460,8 +460,13 @@ main {
     gap: 8px;
 }
 
-.reset-button:hover {
+.reset-button:hover:not(:disabled) {
     background: #444444;
+}
+
+.reset-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .reset-button span:first-child {

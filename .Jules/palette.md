@@ -40,3 +40,6 @@
 **Action:**
 - Always save the `document.activeElement` before initiating an async state that disables the active element, and restore it (or provide a logical fallback) upon completion.
 - Set `alt=""` and `aria-hidden="true"` on images injected into `aria-live` regions when their meaning is already conveyed by adjacent text.
+## 2026-07-20 - Contextual Disabled States for Destructive Actions
+**Learning:** Relying solely on visual cues (like grayed-out buttons) for disabled states creates ambiguity, especially for screen reader users or when the reason for the disabled state isn't immediately obvious.
+**Action:** When disabling a destructive action button (e.g., 'Clear Deck' or 'Reset'), always add a descriptive `title` attribute explaining *why* it's disabled (e.g., 'Custom deck is already empty'), and ensure decorative icons within the button use `aria-hidden="true"`.
