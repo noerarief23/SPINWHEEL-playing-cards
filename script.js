@@ -199,12 +199,15 @@ function prerenderWheel() {
     }
 
     // Match offscreen canvas to main canvas
-    offscreenCanvas.width = canvas.width;
-    offscreenCanvas.height = canvas.height;
-    
-    // Scale offscreen context
-    offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
-    offscreenCtx.scale(dpr, dpr);
+    // ⚡ Bolt: Check if dimensions changed before reassigning to avoid unnecessary buffer destruction
+    if (offscreenCanvas.width !== canvas.width || offscreenCanvas.height !== canvas.height) {
+        offscreenCanvas.width = canvas.width;
+        offscreenCanvas.height = canvas.height;
+
+        // Scale offscreen context only when resized
+        offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
+        offscreenCtx.scale(dpr, dpr);
+    }
 
     // Use LOGICAL coordinates (CSS pixels)
     const size = canvas.width / dpr;
@@ -1093,12 +1096,18 @@ function resizeCanvas() {
 
     // Set drawing buffer size for HiDPI
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
+    const newWidth = size * dpr;
+    const newHeight = size * dpr;
     
-    // Scale context to use logical coordinates
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
+    // ⚡ Bolt: Check if dimensions changed before reassigning to avoid unnecessary buffer destruction
+    if (canvas.width !== newWidth || canvas.height !== newHeight) {
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        // Scale context to use logical coordinates only when resized
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+    }
     
     // Mark for redraw
     needsRedraw = true;
