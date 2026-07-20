@@ -27,3 +27,15 @@
 ## 2026-07-16 - O(M*N) Loop Complexity in Canvas Segment Rendering
 **Learning:** In the `prerenderWheel` function, iterating over the total number of segments within an outer loop for unique colors, and checking `if (i % colors.length === colorIndex)` creates an O(M*N) nested loop complexity where it does nothing for most iterations.
 **Action:** When grouping rendering paths by a cyclic property like colors, use a stepped loop (e.g., `for (let i = colorIndex; i < numSegments; i += colors.length)`) instead of checking modulo on every iteration. This reduces complexity to O(N) and eliminates the modulo operation entirely.
+## 2026-07-17 - Redundant UI Reflows and State Ordering
+**Learning:** In the spin animation end logic, calling a heavy DOM manipulation function like `updateStats()` (which clears and rebuilds a 52-item `select` dropdown via `updateCardSelect()`) twice in the same execution context causes severe and unnecessary layout thrashing. This happened because `isSpinning = false` was set *after* the first call, forcing a second call to evaluate the correct button state.
+**Action:** When updating UI state that involves heavy DOM manipulations, always finalize the underlying application state variables (like `isSpinning`) *before* triggering the render/update functions. This allows batching the UI updates into a single call, eliminating duplicate work and DOM mutations.
+## 2026-07-17 - requestAnimationFrame Timestamp Optimization
+**Learning:** Calling `Date.now()` multiple times inside a fast-firing animation loop like `requestAnimationFrame` introduces unnecessary overhead due to system clock calls. `requestAnimationFrame` inherently passes a high-resolution timestamp as an argument to its callback.
+**Action:** Always use the `timestamp` parameter provided by the `requestAnimationFrame` callback instead of calling `Date.now()` to track elapsed time in animation loops. This eliminates redundant system calls from the hot path.
+## 2026-03-02 - Canvas Dimension Assignment Reallocation
+**Learning:** Setting `canvas.width` or `canvas.height` unconditionally—even if the dimensions have not changed—clears the drawing buffer and forces the browser to reallocate memory for the canvas. In frequently called functions like `resizeCanvas` or offscreen rendering, this leads to unnecessary memory allocations, layout thrashing, and performance spikes.
+**Action:** Always check if the new dimensions are different from the current dimensions before reassigning `canvas.width` and `canvas.height`.
+## 2026-03-05 - Utilizing Idle Animation Time for Resource Loading
+**Learning:** External libraries like canvas-confetti, which are only required after user interaction (e.g., at the end of a long animation), unnecessarily block the initial DOM parsing if placed in the `<head>`.
+**Action:** Move non-critical resources out of the critical rendering path. Instead of loading them synchronously, lazy-load them dynamically during idle time (like the 5-8 second spin animation), ensuring they are available exactly when needed without penalizing First Contentful Paint (FCP) or Time to Interactive (TTI).

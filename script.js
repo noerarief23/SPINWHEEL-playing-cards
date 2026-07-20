@@ -136,6 +136,12 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
+    // ⚡ Bolt: Check if confetti is loaded to prevent errors
+    if (typeof confetti !== 'function') {
+        console.warn('Confetti library not loaded, skipping fireworks animation.');
+        return;
+    }
+
     const duration = 3000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
@@ -193,12 +199,15 @@ function prerenderWheel() {
     }
 
     // Match offscreen canvas to main canvas
-    offscreenCanvas.width = canvas.width;
-    offscreenCanvas.height = canvas.height;
-    
-    // Scale offscreen context
-    offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
-    offscreenCtx.scale(dpr, dpr);
+    // ⚡ Bolt: Check if dimensions changed before reassigning to avoid unnecessary buffer destruction
+    if (offscreenCanvas.width !== canvas.width || offscreenCanvas.height !== canvas.height) {
+        offscreenCanvas.width = canvas.width;
+        offscreenCanvas.height = canvas.height;
+
+        // Scale offscreen context only when resized
+        offscreenCtx.setTransform(1, 0, 0, 1, 0, 0);
+        offscreenCtx.scale(dpr, dpr);
+    }
 
     // Use LOGICAL coordinates (CSS pixels)
     const size = canvas.width / dpr;
@@ -339,6 +348,8 @@ function spin(isRetry = false) {
         retryCount = 0;
     }
 
+    const wasFocused = document.activeElement === spinButton;
+
     isSpinning = true;
     spinButton.disabled = true;
     const btnText = spinButton.querySelector('.button-text');
@@ -348,6 +359,16 @@ function spin(isRetry = false) {
 
     // Play spinning sound effect
     playSpinningSound();
+
+    // ⚡ Bolt: Lazy-load confetti library during 5-8s idle animation time
+    // This removes 30KB+ from critical rendering path and delays execution until needed
+    if (!window.confettiScriptLoaded) {
+        window.confettiScriptLoaded = true;
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+        script.async = true;
+        document.body.appendChild(script);
+    }
 
     // Random spin parameters
     const minSpins = 5;
@@ -375,12 +396,14 @@ function spin(isRetry = false) {
 
     // Animation duration (5-8 seconds)
     const duration = 5000 + Math.random() * 3000;
-    const startTime = Date.now();
+    let startTime = null;
     const startRotation = rotation;
 
-    function animate() {
-        const currentTime = Date.now();
-        const elapsed = currentTime - startTime;
+    // ⚡ Bolt: Use rAF timestamp instead of Date.now() to avoid system calls on every frame
+    function animate(timestamp) {
+        if (!timestamp) timestamp = performance.now();
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
         // Easing function (ease-out cubic)
@@ -442,6 +465,10 @@ function spin(isRetry = false) {
             availableCards.splice(winningIndex, 1);
             drawnCards.push(currentCard);
             
+            // ⚡ Bolt: Set state before calling updateStats to batch DOM updates
+            // and eliminate redundant UI reflows that rebuild the 52-item select list
+            isSpinning = false;
+
             // Update UI
             updateStats();
             addToHistory(currentCard);
@@ -458,10 +485,19 @@ function spin(isRetry = false) {
             // Let's call updateStats() here again to ensure the button state is correct
             // after the spin ends.
             updateStats();
+
+            // Restore focus if the spin button was focused before the spin
+            if (wasFocused) {
+                if (!spinButton.disabled) {
+                    spinButton.focus();
+                } else {
+                    resetButton.focus(); // Fallback to reset button if deck is empty
+                }
+            }
         }
     }
 
-    animate();
+    requestAnimationFrame(animate);
 }
 
 const RANK_MAP = {
@@ -482,7 +518,8 @@ function showResult() {
     const cardImage = document.createElement('img');
     cardImage.className = 'card-face-image';
     cardImage.src = `cards/${RANK_MAP[currentCard.rank]}_of_${SUIT_MAP[currentCard.suitName]}.svg`;
-    cardImage.alt = `${getRankName(currentCard.rank)} of ${currentCard.suitName}`;
+    cardImage.alt = ""; // Empty alt text since the aria-live text contains the same info
+    cardImage.setAttribute('aria-hidden', 'true');
     resultCard.appendChild(cardImage);
     
     resultCard.className = 'result-card';
@@ -696,7 +733,7 @@ function resetGame() {
     currentCard = null;
     
     // Clear history
-    cardHistoryDiv.innerHTML = '<div class="empty-state">No cards drawn yet</div>';
+    cardHistoryDiv.innerHTML = '<div class="empty-state">No cards drawn yet. Spin the wheel to get started!</div>';
     
     // Update stats
     updateStats();
@@ -936,7 +973,8 @@ customDeckSelect.addEventListener('change', () => {
 // Set initial state
 addCustomCardBtn.disabled = true;
 addCustomCardBtn.title = 'Select a card first';
-
+clearCustomDeckBtn.disabled = true;
+clearCustomDeckBtn.title = 'Deck is already empty';
 
 // Initialize custom deck select
 populateCustomDeckSelect();
@@ -1066,12 +1104,18 @@ function resizeCanvas() {
 
     // Set drawing buffer size for HiDPI
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
+    const newWidth = size * dpr;
+    const newHeight = size * dpr;
     
-    // Scale context to use logical coordinates
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
+    // ⚡ Bolt: Check if dimensions changed before reassigning to avoid unnecessary buffer destruction
+    if (canvas.width !== newWidth || canvas.height !== newHeight) {
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+
+        // Scale context to use logical coordinates only when resized
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+    }
     
     // Mark for redraw
     needsRedraw = true;
