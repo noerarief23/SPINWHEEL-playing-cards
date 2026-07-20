@@ -33,3 +33,6 @@
 ## 2026-03-02 - Canvas Dimension Assignment Reallocation
 **Learning:** Setting `canvas.width` or `canvas.height` unconditionally—even if the dimensions have not changed—clears the drawing buffer and forces the browser to reallocate memory for the canvas. In frequently called functions like `resizeCanvas` or offscreen rendering, this leads to unnecessary memory allocations, layout thrashing, and performance spikes.
 **Action:** Always check if the new dimensions are different from the current dimensions before reassigning `canvas.width` and `canvas.height`.
+## 2026-03-05 - Utilizing Idle Animation Time for Resource Loading
+**Learning:** External libraries like canvas-confetti, which are only required after user interaction (e.g., at the end of a long animation), unnecessarily block the initial DOM parsing if placed in the `<head>`.
+**Action:** Move non-critical resources out of the critical rendering path. Instead of loading them synchronously, lazy-load them dynamically during idle time (like the 5-8 second spin animation), ensuring they are available exactly when needed without penalizing First Contentful Paint (FCP) or Time to Interactive (TTI).

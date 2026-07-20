@@ -40,3 +40,7 @@
 **Action:**
 - Always save the `document.activeElement` before initiating an async state that disables the active element, and restore it (or provide a logical fallback) upon completion.
 - Set `alt=""` and `aria-hidden="true"` on images injected into `aria-live` regions when their meaning is already conveyed by adjacent text.
+
+## 2026-07-19 - Contextual Disabled States for Empty Actions
+**Learning:** Relying solely on visual grayed-out states for empty states is confusing. Explicit context should be provided using title attributes.
+**Action:** Always provide explicit disabled state context using title attributes and disable destructive actions when there is no state to act upon.
