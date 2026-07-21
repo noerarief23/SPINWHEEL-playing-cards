@@ -569,6 +569,15 @@ function updateStats() {
         if (btnText) btnText.textContent = 'SPIN';
         spinButton.removeAttribute('title');
     }
+
+    // Update reset button state
+    if (drawnCards.length === 0) {
+        resetButton.disabled = true;
+        resetButton.title = 'Game is already in initial state';
+    } else {
+        resetButton.disabled = false;
+        resetButton.removeAttribute('title');
+    }
 }
 
 // Update the card select dropdown with available cards
@@ -665,6 +674,7 @@ function showFeedback(button, message, isError = true) {
 
 // Mark selected card as drawn
 function markSelectedCardAsDrawn() {
+    const wasFocused = document.activeElement === markSelectedBtn;
     const selectedIndex = cardSelect.value;
     
     if (selectedIndex === '') {
@@ -701,6 +711,11 @@ function markSelectedCardAsDrawn() {
     
     // Show success feedback
     showFeedback(markSelectedBtn, `Marked ${card.display}`, false);
+
+    // Restore focus to select dropdown if the button became disabled
+    if (wasFocused) {
+        cardSelect.focus();
+    }
 }
 
 // Reset the game
@@ -875,6 +890,7 @@ function removeCustomCard(index) {
 }
 
 addCustomCardBtn.addEventListener('click', () => {
+    const wasFocused = document.activeElement === addCustomCardBtn;
     const selectedIndex = customDeckSelect.value;
     if (selectedIndex === '') {
         showFeedback(addCustomCardBtn, 'Select a card', true);
@@ -898,6 +914,10 @@ addCustomCardBtn.addEventListener('click', () => {
         resetGame();
     }
     showFeedback(addCustomCardBtn, 'Added successfully', false);
+
+    if (wasFocused) {
+        customDeckSelect.focus();
+    }
 });
 
 let clearDeckConfirmTimeout;
