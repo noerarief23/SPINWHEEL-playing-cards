@@ -43,3 +43,6 @@
 ## 2024-10-24 - TTI Double-Render Penalty from Redundant Sync Initializations
 **Learning:** Mixing immediate synchronous initialization calls (like rendering a canvas or updating stats) with layout-dependent callbacks (like `requestAnimationFrame` wrappers) on `DOMContentLoaded` causes a severe double-render penalty during Time-to-Interactive. The synchronous calls block the main thread and paint once, only to be immediately superseded by the layout callback painting exactly the same state.
 **Action:** Always verify if layout-dependent rendering functions are already scheduled or triggered via resize/layout observers before manually calling them synchronously on load. Eliminate redundant calls to streamline the initial TTI.
+## 2026-02-12 - Canvas Resize Thrashing on Mobile
+**Learning:** Mobile browsers frequently trigger 'resize' events during vertical scrolling as the address bar shows/hides, even when the actual viewport width hasn't changed. If canvas redraw logic is bound directly to the 'resize' event without checking for dimension changes, this causes severe rendering thrashing and frame drops on scroll.
+**Action:** Always wrap canvas redraw operations inside 'resize' handlers with a conditional check to verify that the canvas width or height has actually changed before executing the redraw.
