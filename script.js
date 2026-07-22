@@ -1156,10 +1156,8 @@ function waitForLayout(callback) {
 
 document.addEventListener('DOMContentLoaded', () => {
     preloadAudio();
-    // Call resize immediately
-    resizeCanvas();
-    updateStats();
-    // Also wait for proper layout
+    // ⚡ Bolt: Removed redundant synchronous calls to resizeCanvas() and updateStats()
+    // waiting for proper layout prevents heavy double-render during Time-to-Interactive
     waitForLayout(() => {
         resizeCanvas();
         updateStats();
