@@ -47,3 +47,11 @@
 ## 2026-07-19 - Contextual Disabled States for Empty Actions
 **Learning:** Relying solely on visual grayed-out states for empty states is confusing. Explicit context should be provided using title attributes.
 **Action:** Always provide explicit disabled state context using title attributes and disable destructive actions when there is no state to act upon.
+
+## 2026-07-21 - Explicit Focus Restoration for Synchronous Disabled States
+**Learning:** Found an accessibility issue pattern where buttons (like "Mark Selected" and "Add" custom card) disable themselves synchronously in their click handlers, causing focus to drop to the `<body>`. The previous learning only covered async actions (like the spin animation).
+**Action:** Always capture the active element (`const wasFocused = document.activeElement === btn`) before disabling it in click handlers, and restore focus to a logical adjacent interactive element (like the associated `select` dropdown) if focus was lost.
+
+## 2026-07-21 - Disable Destructive Actions for Empty States Applied to Reset
+**Learning:** Applying the "Disable Destructive Actions for Empty States" principle, the global game "Reset" button should be disabled when the game is already in its initial state (no drawn cards).
+**Action:** Always ensure global state reset buttons are disabled with explicit context via `title` attribute when there is no state to reset.
