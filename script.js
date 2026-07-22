@@ -887,6 +887,19 @@ function removeCustomCard(index) {
     if (cardCountSelect.value === 'custom-list') {
         resetGame();
     }
+
+    // Explicitly set focus since the button was removed from DOM
+    if (customDeckCards.length === 0) {
+        customDeckSelect.focus();
+    } else {
+        // If there are still cards, focus the next available remove button,
+        // or the previous one if we deleted the last item
+        const remainingBtns = document.querySelectorAll('.remove-custom-card');
+        if (remainingBtns.length > 0) {
+            const nextFocusIndex = Math.min(index, remainingBtns.length - 1);
+            remainingBtns[nextFocusIndex].focus();
+        }
+    }
 }
 
 addCustomCardBtn.addEventListener('click', () => {
@@ -948,6 +961,9 @@ clearCustomDeckBtn.addEventListener('click', (e) => {
         if (cardCountSelect.value === 'custom-list') {
             resetGame();
         }
+
+        // Restore focus since button disabled itself
+        customDeckSelect.focus();
     } else {
         btn.dataset.confirming = 'true';
         btn.innerHTML = '⚠️ Confirm Clear?';

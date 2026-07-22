@@ -47,6 +47,9 @@
 ## 2026-07-19 - Contextual Disabled States for Empty Actions
 **Learning:** Relying solely on visual grayed-out states for empty states is confusing. Explicit context should be provided using title attributes.
 **Action:** Always provide explicit disabled state context using title attributes and disable destructive actions when there is no state to act upon.
+## 2026-07-21 - Restoring Focus on Self-Disabling Elements
+**Learning:** Found an accessibility issue pattern where elements (like `markSelectedBtn`, `addCustomCardBtn`, and `clearCustomDeckBtn`) disable themselves synchronously after being clicked, or are completely removed from the DOM (like `.remove-custom-card` when it is the last item). This causes screen reader and keyboard focus to drop entirely to the `<body>`, forcing users to navigate through the entire page structure again.
+**Action:** When an interactive element disables itself synchronously or gets removed from the DOM, capture and explicitly restore focus to an adjacent logical element (like the parent dropdown `customDeckSelect` or the next available remove button) to prevent focus dropping.
 
 ## 2026-07-21 - Explicit Focus Restoration for Synchronous Disabled States
 **Learning:** Found an accessibility issue pattern where buttons (like "Mark Selected" and "Add" custom card) disable themselves synchronously in their click handlers, causing focus to drop to the `<body>`. The previous learning only covered async actions (like the spin animation).
