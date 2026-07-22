@@ -39,3 +39,6 @@
 ## 2026-03-05 - Utilizing Idle Animation Time for Resource Loading
 **Learning:** External libraries like canvas-confetti, which are only required after user interaction (e.g., at the end of a long animation), unnecessarily block the initial DOM parsing if placed in the `<head>`.
 **Action:** Move non-critical resources out of the critical rendering path. Instead of loading them synchronously, lazy-load them dynamically during idle time (like the 5-8 second spin animation), ensuring they are available exactly when needed without penalizing First Contentful Paint (FCP) or Time to Interactive (TTI).
+## 2026-02-12 - Canvas Resize Thrashing on Mobile
+**Learning:** Mobile browsers frequently trigger 'resize' events during vertical scrolling as the address bar shows/hides, even when the actual viewport width hasn't changed. If canvas redraw logic is bound directly to the 'resize' event without checking for dimension changes, this causes severe rendering thrashing and frame drops on scroll.
+**Action:** Always wrap canvas redraw operations inside 'resize' handlers with a conditional check to verify that the canvas width or height has actually changed before executing the redraw.

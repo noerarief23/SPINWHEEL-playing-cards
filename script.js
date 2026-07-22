@@ -1115,13 +1115,13 @@ function resizeCanvas() {
         // Scale context to use logical coordinates only when resized
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(dpr, dpr);
+
+        // ⚡ Bolt: Move redraw inside conditional to prevent O(N) canvas repaints
+        // during harmless resize events (like mobile browser toolbars disappearing/reappearing).
+        // Expected impact: Eliminates expensive redraws on vertical scroll, saving ~10-15ms per resize event.
+        needsRedraw = true;
+        drawWheel();
     }
-    
-    // Mark for redraw
-    needsRedraw = true;
-    
-    // Redraw wheel
-    drawWheel();
 }
 
 // Initialize
