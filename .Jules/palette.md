@@ -50,3 +50,11 @@
 ## 2026-07-21 - Restoring Focus on Self-Disabling Elements
 **Learning:** Found an accessibility issue pattern where elements (like `markSelectedBtn`, `addCustomCardBtn`, and `clearCustomDeckBtn`) disable themselves synchronously after being clicked, or are completely removed from the DOM (like `.remove-custom-card` when it is the last item). This causes screen reader and keyboard focus to drop entirely to the `<body>`, forcing users to navigate through the entire page structure again.
 **Action:** When an interactive element disables itself synchronously or gets removed from the DOM, capture and explicitly restore focus to an adjacent logical element (like the parent dropdown `customDeckSelect` or the next available remove button) to prevent focus dropping.
+
+## 2026-07-21 - Explicit Focus Restoration for Synchronous Disabled States
+**Learning:** Found an accessibility issue pattern where buttons (like "Mark Selected" and "Add" custom card) disable themselves synchronously in their click handlers, causing focus to drop to the `<body>`. The previous learning only covered async actions (like the spin animation).
+**Action:** Always capture the active element (`const wasFocused = document.activeElement === btn`) before disabling it in click handlers, and restore focus to a logical adjacent interactive element (like the associated `select` dropdown) if focus was lost.
+
+## 2026-07-21 - Disable Destructive Actions for Empty States Applied to Reset
+**Learning:** Applying the "Disable Destructive Actions for Empty States" principle, the global game "Reset" button should be disabled when the game is already in its initial state (no drawn cards).
+**Action:** Always ensure global state reset buttons are disabled with explicit context via `title` attribute when there is no state to reset.
