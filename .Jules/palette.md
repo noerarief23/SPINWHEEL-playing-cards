@@ -58,3 +58,7 @@
 ## 2026-07-21 - Disable Destructive Actions for Empty States Applied to Reset
 **Learning:** Applying the "Disable Destructive Actions for Empty States" principle, the global game "Reset" button should be disabled when the game is already in its initial state (no drawn cards).
 **Action:** Always ensure global state reset buttons are disabled with explicit context via `title` attribute when there is no state to reset.
+
+## 2026-07-22 - Semantic Lists for Dynamic Collections
+**Learning:** Found an accessibility issue pattern where dynamic collections (like the card history and custom deck builder) were implemented using generic `<div>` tags instead of semantic `<ul>` and `<li>` lists. Screen readers announce list sizes and structure to users navigating with them, providing valuable context that generic `div`s lack.
+**Action:** Always use semantic `<ul>`/`<ol>` and `<li>` elements for displaying lists or dynamic collections of items, and ensure `ul`/`ol` tags include an appropriate `aria-label` attribute if they lack a visible labeling element. Update CSS to remove default browser list styling if a custom appearance is required.

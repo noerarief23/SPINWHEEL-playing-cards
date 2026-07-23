@@ -366,6 +366,9 @@ main {
     overflow-y: auto;
     margin-bottom: 15px;
     min-height: 200px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 15px 0;
 }
 
 .empty-state {
@@ -721,6 +724,7 @@ input:focus-visible,
     border: 1px dashed #333;
     padding: 10px;
     border-radius: 4px;
+    list-style: none;
 }
 
 .custom-deck-item {
@@ -731,6 +735,10 @@ input:focus-visible,
     align-items: center;
     gap: 5px;
     font-size: 0.9em;
+}
+
+.custom-deck-item .red {
+    color: #ff4444;
 }
 
 .remove-custom-card {

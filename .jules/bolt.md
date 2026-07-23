@@ -46,3 +46,6 @@
 ## 2026-02-12 - Canvas Resize Thrashing on Mobile
 **Learning:** Mobile browsers frequently trigger 'resize' events during vertical scrolling as the address bar shows/hides, even when the actual viewport width hasn't changed. If canvas redraw logic is bound directly to the 'resize' event without checking for dimension changes, this causes severe rendering thrashing and frame drops on scroll.
 **Action:** Always wrap canvas redraw operations inside 'resize' handlers with a conditional check to verify that the canvas width or height has actually changed before executing the redraw.
+## 2026-11-20 - Avoiding Double-Render on DOMContentLoaded
+**Learning:** Making immediate synchronous UI initialization calls (like rendering canvas or updating stats) on `DOMContentLoaded` if they are also handled by `requestAnimationFrame`-based layout observers (e.g., `waitForLayout`) causes a severe double-render penalty during Time-to-Interactive.
+**Action:** When using layout observers to initialize UI, avoid making identical synchronous initialization calls on `DOMContentLoaded`. Instead, let the layout observer handle the initial render to prevent redundant rendering work.
