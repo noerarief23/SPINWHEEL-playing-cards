@@ -38,9 +38,9 @@
             <!-- Card History -->
             <aside class="history-panel">
                 <h3>Card History</h3>
-                <div id="cardHistory" class="card-history-list">
-                    <div class="empty-state">No cards drawn yet. Spin the wheel to get started!</div>
-                </div>
+                <ul id="cardHistory" class="card-history-list" aria-label="Card history">
+                    <li class="empty-state">No cards drawn yet. Spin the wheel to get started!</li>
+                </ul>
                 <div class="stats">
                     <p>Remaining: <span id="remainingCount">52</span></p>
                     <p>Drawn: <span id="drawnCount">0</span></p>
@@ -71,9 +71,9 @@
                     <button id="addCustomCardBtn" class="mark-button" aria-live="polite">Add</button>
                     <button id="clearCustomDeckBtn" class="reset-button" style="position: static; margin: 0; padding: 10px 15px; font-size: 0.9rem;">Clear Deck</button>
                 </div>
-                <div id="customDeckList" class="custom-deck-list">
+                <ul id="customDeckList" class="custom-deck-list" aria-label="Custom deck cards">
                     <!-- Custom cards will appear here -->
-                </div>
+                </ul>
             </div>
             <div class="config-item">
                 <label for="cardSelect">Mark cards as drawn:</label>

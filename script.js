@@ -614,7 +614,7 @@ function addToHistory(card) {
         return;
     }
     
-    const historyItem = document.createElement('div');
+    const historyItem = document.createElement('li');
     historyItem.className = 'history-item';
     
     const cardDisplay = document.createElement('div');
@@ -748,7 +748,7 @@ function resetGame() {
     currentCard = null;
     
     // Clear history
-    cardHistoryDiv.innerHTML = '<div class="empty-state">No cards drawn yet. Spin the wheel to get started!</div>';
+    cardHistoryDiv.innerHTML = '<li class="empty-state">No cards drawn yet. Spin the wheel to get started!</li>';
     
     // Update stats
     updateStats();
@@ -844,7 +844,7 @@ function populateCustomDeckSelect() {
 function renderCustomDeckList() {
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<span style="color: #999; font-style: italic;">No cards added yet. Select a card above to build your custom deck.</span>';
+        customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
         if (clearCustomDeckBtn) {
             clearCustomDeckBtn.disabled = true;
             clearCustomDeckBtn.title = 'Custom deck is already empty';
@@ -860,7 +860,7 @@ function renderCustomDeckList() {
     const fragment = document.createDocumentFragment();
 
     customDeckCards.forEach((card, index) => {
-        const item = document.createElement('div');
+        const item = document.createElement('li');
         item.className = 'custom-deck-item';
 
         const cardText = document.createElement('span');
