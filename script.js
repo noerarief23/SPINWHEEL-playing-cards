@@ -582,8 +582,21 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
-    // Clear existing options except the first one
-    cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+    // Check if there are available cards and update the dropdown state accordingly
+    const hasCards = availableCards.length > 0;
+
+    // Clear existing options except the first one with contextual text
+    cardSelect.innerHTML = hasCards
+        ? '<option value="">-- Select a card --</option>'
+        : '<option value="">-- No cards available --</option>';
+
+    // Update disabled state and context
+    cardSelect.disabled = !hasCards;
+    if (!hasCards) {
+        cardSelect.title = 'No more cards available in the deck';
+    } else {
+        cardSelect.removeAttribute('title');
+    }
     
     // Use DocumentFragment for performance
     const fragment = document.createDocumentFragment();
@@ -601,6 +614,7 @@ function updateCardSelect() {
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
         markSelectedBtn.disabled = true;
+        markSelectedBtn.title = 'Select a card first';
     }
 }
 
@@ -714,7 +728,11 @@ function markSelectedCardAsDrawn() {
 
     // Restore focus to select dropdown if the button became disabled
     if (wasFocused) {
-        cardSelect.focus();
+        if (!cardSelect.disabled) {
+            cardSelect.focus();
+        } else {
+            resetButton.focus(); // Fallback to reset button if deck is empty and dropdown is disabled
+        }
     }
 }
 
