@@ -62,3 +62,7 @@
 ## 2026-07-22 - Semantic Lists for Dynamic Collections
 **Learning:** Found an accessibility issue pattern where dynamic collections (like the card history and custom deck builder) were implemented using generic `<div>` tags instead of semantic `<ul>` and `<li>` lists. Screen readers announce list sizes and structure to users navigating with them, providing valuable context that generic `div`s lack.
 **Action:** Always use semantic `<ul>`/`<ol>` and `<li>` elements for displaying lists or dynamic collections of items, and ensure `ul`/`ol` tags include an appropriate `aria-label` attribute if they lack a visible labeling element. Update CSS to remove default browser list styling if a custom appearance is required.
+
+## 2026-07-27 - Contextual Disabled States for Empty Dropdowns
+**Learning:** Found that when a dynamic dropdown's backing data is empty, users are left with an empty list or dead-end interaction without context. Relying on an empty list can be confusing, especially for screen reader users or those unfamiliar with the app's logical constraints.
+**Action:** Always disable dynamic select dropdowns when their backing data is empty, providing explicit context via a `title` attribute and updating the placeholder option text (e.g., '-- No cards available --') to prevent dead-end interactions.
