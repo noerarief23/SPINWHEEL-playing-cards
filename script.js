@@ -583,14 +583,12 @@ function updateStats() {
 // Update the card select dropdown with available cards
 function updateCardSelect() {
     // Clear existing options except the first one
-    const isEmpty = availableCards.length === 0;
-    const placeholderText = isEmpty ? '-- No cards available --' : '-- Select a card --';
-    cardSelect.innerHTML = `<option value="">${placeholderText}</option>`;
-
-    if (isEmpty) {
+    if (availableCards.length === 0) {
+        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
-        cardSelect.title = 'No more cards available to mark as drawn';
+        cardSelect.title = 'No cards left in the deck';
     } else {
+        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
