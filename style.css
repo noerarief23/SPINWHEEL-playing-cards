@@ -109,6 +109,12 @@ header {
     min-width: 200px;
 }
 
+.config-item select:disabled,
+.config-item input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .mark-button {
     background: #333333;
     border: 1px solid #666666;
