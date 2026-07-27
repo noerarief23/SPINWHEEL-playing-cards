@@ -582,19 +582,16 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
-    // Check if there are available cards and update the dropdown state accordingly
-    const hasCards = availableCards.length > 0;
+    // Clear existing options except the first one
+    const isEmpty = availableCards.length === 0;
+    const placeholderText = isEmpty ? '-- No cards available --' : '-- Select a card --';
+    cardSelect.innerHTML = `<option value="">${placeholderText}</option>`;
 
-    // Clear existing options except the first one with contextual text
-    cardSelect.innerHTML = hasCards
-        ? '<option value="">-- Select a card --</option>'
-        : '<option value="">-- No cards available --</option>';
-
-    // Update disabled state and context
-    cardSelect.disabled = !hasCards;
-    if (!hasCards) {
-        cardSelect.title = 'No more cards available in the deck';
+    if (isEmpty) {
+        cardSelect.disabled = true;
+        cardSelect.title = 'No more cards available to mark as drawn';
     } else {
+        cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
     
