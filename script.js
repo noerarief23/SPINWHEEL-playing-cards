@@ -609,6 +609,7 @@ function updateCardSelect() {
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
         markSelectedBtn.disabled = true;
+        markSelectedBtn.title = 'Select a card first';
     }
 }
 
@@ -722,7 +723,11 @@ function markSelectedCardAsDrawn() {
 
     // Restore focus to select dropdown if the button became disabled
     if (wasFocused) {
-        cardSelect.focus();
+        if (!cardSelect.disabled) {
+            cardSelect.focus();
+        } else {
+            resetButton.focus(); // Fallback to reset button if deck is empty and dropdown is disabled
+        }
     }
 }
 
