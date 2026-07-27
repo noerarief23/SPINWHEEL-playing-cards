@@ -582,8 +582,15 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
-    // Clear existing options except the first one
-    cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+    if (availableCards.length === 0) {
+        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
+        cardSelect.disabled = true;
+        cardSelect.title = 'All cards have been drawn';
+    } else {
+        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+        cardSelect.disabled = false;
+        cardSelect.removeAttribute('title');
+    }
     
     // Use DocumentFragment for performance
     const fragment = document.createDocumentFragment();
