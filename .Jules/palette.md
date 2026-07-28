@@ -75,3 +75,7 @@
 ## 2023-11-20 - Disable Dynamic Empty Dropdowns
 **Learning:** Found an accessibility issue pattern where dynamic dropdown menus (like "Mark cards as drawn") remained enabled even when there were no options left to select. Users could click the dropdown only to find it confusingly empty, which is a dead-end interaction.
 **Action:** Always disable dynamic select dropdowns when their backing data is empty. When doing so, provide explicit context via a `title` attribute (e.g. 'All cards have been drawn') and update the placeholder option text (e.g. '-- No cards available --') to explain why the input is blocked and prevent user frustration.
+
+## 2024-05-18 - Managing Focus in Destructive Actions
+**Learning:** When a destructive action button (like Reset) uses inline confirmation state and then disables itself synchronously upon success, keyboard focus will drop to the document body, breaking the keyboard navigation flow.
+**Action:** Always capture `document.activeElement` before executing the destructive action. If the triggering button was focused, explicitly restore focus to the next logical interactive element (e.g., the primary action button like `spinButton`) after the action completes.
