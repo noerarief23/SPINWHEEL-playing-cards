@@ -93,6 +93,10 @@ function preloadAudio() {
 
 // Play spinning sound
 function playSpinningSound() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     try {
         if (spinningAudio) {
             spinningAudio.currentTime = 0;
@@ -136,6 +140,10 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     // ⚡ Bolt: Check if confetti is loaded to prevent errors
     if (typeof confetti !== 'function') {
         console.warn('Confetti library not loaded, skipping fireworks animation.');
@@ -395,7 +403,7 @@ function spin(isRetry = false) {
     }
 
     // Animation duration (5-8 seconds)
-    const duration = 5000 + Math.random() * 3000;
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 5000 + Math.random() * 3000;
     let startTime = null;
     const startRotation = rotation;
 
