@@ -75,3 +75,7 @@
 ## 2023-11-20 - Disable Dynamic Empty Dropdowns
 **Learning:** Found an accessibility issue pattern where dynamic dropdown menus (like "Mark cards as drawn") remained enabled even when there were no options left to select. Users could click the dropdown only to find it confusingly empty, which is a dead-end interaction.
 **Action:** Always disable dynamic select dropdowns when their backing data is empty. When doing so, provide explicit context via a `title` attribute (e.g. 'All cards have been drawn') and update the placeholder option text (e.g. '-- No cards available --') to explain why the input is blocked and prevent user frustration.
+
+## 2024-05-18 - prefers-reduced-motion for Custom Animations and Sounds
+**Learning:** `prefers-reduced-motion` should not only be used for bypassing visual animations like canvas confetti or fast spinning visual elements, but should also apply to bypassing prolonged, potentially disorienting sound effects (like a long 8-second drum roll) that accompany the spinning state. However, standard discrete success feedback audio (like a brief win sound) should be preserved to maintain accessibility standards.
+**Action:** When implementing `prefers-reduced-motion` checks, differentiate between prolonged/disorienting functional sounds and discrete feedback sounds. Bypass the former, preserve the latter. Ensure animation durations aren't set to literally 0 to avoid divide-by-zero math errors in canvas easing logic (e.g., set to 1ms).
