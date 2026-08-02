@@ -582,29 +582,26 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
+    // ⚡ Bolt: Build complete HTML string for single-pass assignment to avoid iterative DOM layout penalties
+    let htmlStr = '';
+
     // Clear existing options except the first one
     if (availableCards.length === 0) {
-        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
+        htmlStr = '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+        htmlStr = '<option value="">-- Select a card --</option>';
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
     
-    // Use DocumentFragment for performance
-    const fragment = document.createDocumentFragment();
-
-    // Add options for all available cards
+    // ⚡ Bolt: Use string concatenation instead of DocumentFragment for faster complete element replacement
     availableCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        htmlStr += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.appendChild(fragment);
+    cardSelect.innerHTML = htmlStr;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -838,15 +835,15 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
-    const fragment = document.createDocumentFragment();
+    // ⚡ Bolt: Build complete HTML string for single-pass assignment
+    let htmlStr = '<option value="">-- Select a card to add --</option>';
+
+    // ⚡ Bolt: Use string concatenation instead of DocumentFragment for faster complete element replacement
     allCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        htmlStr += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
-    customDeckSelect.appendChild(fragment);
+
+    customDeckSelect.innerHTML = htmlStr;
 
     // Reset button state
     if (addCustomCardBtn) {
