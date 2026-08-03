@@ -582,29 +582,26 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
+    // ⚡ Bolt: Replace DocumentFragment loop with innerHTML string building for faster dropdown population
+    let optionsHTML = '';
+
     // Clear existing options except the first one
     if (availableCards.length === 0) {
-        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
+        optionsHTML = '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+        optionsHTML = '<option value="">-- Select a card --</option>';
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
-    
-    // Use DocumentFragment for performance
-    const fragment = document.createDocumentFragment();
 
     // Add options for all available cards
     availableCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.appendChild(fragment);
+    cardSelect.innerHTML = optionsHTML;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -838,15 +835,14 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
-    const fragment = document.createDocumentFragment();
+    // ⚡ Bolt: Replace DocumentFragment loop with innerHTML string building for faster dropdown population
+    let optionsHTML = '<option value="">-- Select a card to add --</option>';
+
     allCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
-    customDeckSelect.appendChild(fragment);
+
+    customDeckSelect.innerHTML = optionsHTML;
 
     // Reset button state
     if (addCustomCardBtn) {
