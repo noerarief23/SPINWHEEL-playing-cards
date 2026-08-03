@@ -854,7 +854,47 @@ function populateCustomDeckSelect() {
     }
 }
 
+function updateCustomDeckSelectState() {
+    if (!customDeckSelect) return;
+
+    const addedDisplays = customDeckCards.map(c => c.display);
+    let allAdded = true;
+
+    // Skip placeholder option
+    for (let i = 1; i < customDeckSelect.options.length; i++) {
+        const option = customDeckSelect.options[i];
+        const cardIndex = parseInt(option.value);
+        if (isNaN(cardIndex)) continue;
+
+        const card = allCards[cardIndex];
+        const isAdded = addedDisplays.includes(card.display);
+        const originalText = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+
+        if (isAdded) {
+            option.disabled = true;
+            option.textContent = `${originalText} (Added)`;
+        } else {
+            option.disabled = false;
+            option.textContent = originalText;
+            allAdded = false;
+        }
+    }
+
+    const placeholderOption = customDeckSelect.options[0];
+    if (allAdded && customDeckSelect.options.length > 1) {
+        customDeckSelect.disabled = true;
+        customDeckSelect.title = 'All available cards have been added';
+        if (placeholderOption) placeholderOption.textContent = '-- All cards added --';
+    } else {
+        customDeckSelect.disabled = false;
+        customDeckSelect.removeAttribute('title');
+        if (placeholderOption) placeholderOption.textContent = '-- Select a card to add --';
+    }
+}
+
 function renderCustomDeckList() {
+    updateCustomDeckSelectState();
+
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
         customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
@@ -884,6 +924,7 @@ function renderCustomDeckList() {
         removeBtn.className = 'remove-custom-card';
         removeBtn.textContent = '×';
         removeBtn.setAttribute('aria-label', `Remove ${getRankName(card.rank)} of ${card.suitName}`);
+        removeBtn.setAttribute('title', `Remove ${getRankName(card.rank)} of ${card.suitName}`);
         removeBtn.onclick = () => removeCustomCard(index);
 
         item.appendChild(cardText);

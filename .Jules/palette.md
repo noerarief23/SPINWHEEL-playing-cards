@@ -75,3 +75,7 @@
 ## 2023-11-20 - Disable Dynamic Empty Dropdowns
 **Learning:** Found an accessibility issue pattern where dynamic dropdown menus (like "Mark cards as drawn") remained enabled even when there were no options left to select. Users could click the dropdown only to find it confusingly empty, which is a dead-end interaction.
 **Action:** Always disable dynamic select dropdowns when their backing data is empty. When doing so, provide explicit context via a `title` attribute (e.g. 'All cards have been drawn') and update the placeholder option text (e.g. '-- No cards available --') to explain why the input is blocked and prevent user frustration.
+
+## 2026-07-28 - Proactive Disabled States for Form Options
+**Learning:** Found a UX issue where users could select cards that were already added to their custom deck, only to receive a post-action error ("Already added") upon clicking "Add". Reacting to user errors is inferior to preventing them entirely. Relying on users to remember their selections or check the list below creates cognitive load.
+**Action:** Always proactively disable invalid choices (like duplicates) directly within the UI elements (e.g., `<option disabled>`). Append contextual text like "(Added)" to the option so the user immediately understands why the choice is unavailable, preventing the error before it can happen.
