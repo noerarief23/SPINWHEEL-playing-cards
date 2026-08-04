@@ -854,7 +854,25 @@ function populateCustomDeckSelect() {
     }
 }
 
+function updateCustomDeckSelectOptions() {
+    Array.from(customDeckSelect.options).forEach(option => {
+        if (option.value === "") return;
+
+        const card = allCards[parseInt(option.value)];
+        const isAdded = customDeckCards.some(c => c.display === card.display);
+
+        if (isAdded) {
+            option.disabled = true;
+            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName} (Added)`;
+        } else {
+            option.disabled = false;
+            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        }
+    });
+}
+
 function renderCustomDeckList() {
+    updateCustomDeckSelectOptions();
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
         customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
