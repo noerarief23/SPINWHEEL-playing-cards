@@ -75,3 +75,7 @@
 ## 2023-11-20 - Disable Dynamic Empty Dropdowns
 **Learning:** Found an accessibility issue pattern where dynamic dropdown menus (like "Mark cards as drawn") remained enabled even when there were no options left to select. Users could click the dropdown only to find it confusingly empty, which is a dead-end interaction.
 **Action:** Always disable dynamic select dropdowns when their backing data is empty. When doing so, provide explicit context via a `title` attribute (e.g. 'All cards have been drawn') and update the placeholder option text (e.g. '-- No cards available --') to explain why the input is blocked and prevent user frustration.
+
+## 2024-08-04 - Motion vs Auditory Preferences
+**Learning:** Motion preferences (e.g., `prefers-reduced-motion`) are distinct from general auditory preferences. When applying reduced-motion checks, users still expect functional/success feedback unless they specifically disable sound.
+**Action:** Do not arbitrarily mute standard functional or success audio feedback based on motion preferences; only disable prolonged or visually-tied disorienting sounds.
