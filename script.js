@@ -593,18 +593,13 @@ function updateCardSelect() {
         cardSelect.removeAttribute('title');
     }
     
-    // Use DocumentFragment for performance
-    const fragment = document.createDocumentFragment();
-
-    // Add options for all available cards
+    // ⚡ Bolt: Use string concatenation for faster DOM replacement
+    let optionsHTML = '';
     availableCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.appendChild(fragment);
+    cardSelect.insertAdjacentHTML('beforeend', optionsHTML);
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -838,15 +833,12 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
-    const fragment = document.createDocumentFragment();
+    // ⚡ Bolt: Use string concatenation for faster initial rendering
+    let html = '<option value="">-- Select a card to add --</option>';
     allCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        html += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
-    customDeckSelect.appendChild(fragment);
+    customDeckSelect.innerHTML = html;
 
     // Reset button state
     if (addCustomCardBtn) {
@@ -870,29 +862,29 @@ function renderCustomDeckList() {
         clearCustomDeckBtn.removeAttribute('title');
     }
 
-    const fragment = document.createDocumentFragment();
-
+    // ⚡ Bolt: Use string concatenation instead of iterative createElement for faster rendering
+    let html = '';
     customDeckCards.forEach((card, index) => {
-        const item = document.createElement('li');
-        item.className = 'custom-deck-item';
-
-        const cardText = document.createElement('span');
-        cardText.className = card.color;
-        cardText.textContent = card.display;
-
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-custom-card';
-        removeBtn.textContent = '×';
-        removeBtn.setAttribute('aria-label', `Remove ${getRankName(card.rank)} of ${card.suitName}`);
-        removeBtn.onclick = () => removeCustomCard(index);
-
-        item.appendChild(cardText);
-        item.appendChild(removeBtn);
-        fragment.appendChild(item);
+        html += `
+            <li class="custom-deck-item">
+                <span class="${card.color}">${card.display}</span>
+                <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
+            </li>
+        `;
     });
 
-    customDeckList.appendChild(fragment);
+    customDeckList.innerHTML = html;
 }
+
+// ⚡ Bolt: Event delegation for custom deck list to avoid inline onclick handlers in string templates
+customDeckList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-custom-card')) {
+        const index = parseInt(e.target.getAttribute('data-index'), 10);
+        if (!isNaN(index)) {
+            removeCustomCard(index);
+        }
+    }
+});
 
 function removeCustomCard(index) {
     customDeckCards.splice(index, 1);
