@@ -136,6 +136,10 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     // ⚡ Bolt: Check if confetti is loaded to prevent errors
     if (typeof confetti !== 'function') {
         console.warn('Confetti library not loaded, skipping fireworks animation.');
@@ -357,12 +361,16 @@ function spin(isRetry = false) {
     resultCard.classList.remove('show');
     resultText.textContent = 'Spinning...';
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Play spinning sound effect
-    playSpinningSound();
+    if (!prefersReducedMotion) {
+        playSpinningSound();
+    }
 
     // ⚡ Bolt: Lazy-load confetti library during 5-8s idle animation time
     // This removes 30KB+ from critical rendering path and delays execution until needed
-    if (!window.confettiScriptLoaded) {
+    if (!window.confettiScriptLoaded && !prefersReducedMotion) {
         window.confettiScriptLoaded = true;
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
@@ -395,7 +403,7 @@ function spin(isRetry = false) {
     }
 
     // Animation duration (5-8 seconds)
-    const duration = 5000 + Math.random() * 3000;
+    const duration = prefersReducedMotion ? 1 : 5000 + Math.random() * 3000;
     let startTime = null;
     const startRotation = rotation;
 
