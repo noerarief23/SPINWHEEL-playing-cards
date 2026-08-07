@@ -1174,12 +1174,19 @@ function resizeCanvas() {
 }
 
 // Initialize
-// Performance Optimization: Debounce canvas resize to prevent expensive redraws
-let resizeTimeout;
-window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resizeCanvas, 150);
-});
+// Performance Optimization: Use ResizeObserver instead of window resize to prevent
+// layout thrashing and expensive redraws on mobile devices caused by fake resize events.
+const resizeObserver = new ResizeObserver(debounce(() => {
+    // Only resize if the container actually exists and is visible
+    if (wheelContainer && wheelContainer.offsetWidth > 0) {
+        resizeCanvas();
+    }
+}, 150));
+
+// Start observing the wheel container once it's available
+if (wheelContainer) {
+    resizeObserver.observe(wheelContainer);
+}
 
 // Wait for DOM and layout to be ready
 function waitForLayout(callback) {
