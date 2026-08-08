@@ -1178,11 +1178,10 @@ function resizeCanvas(observedWidth) {
         return;
     }
     
-    // ⚡ Bolt: Use observedWidth from ResizeObserver to avoid synchronous layout reflow (style recalculation)
-    // caused by reading offsetWidth. If not provided, fallback to offsetWidth.
-    let size = observedWidth ?? wheelContainer.offsetWidth;
+    // Use ONLY offsetWidth (aspect-ratio ensures 1:1) or observed width to avoid layout thrashing
+    let size = observedWidth !== undefined ? observedWidth : wheelContainer.offsetWidth;
     
-    // Fallback if offsetWidth is 0
+    // Fallback if size is 0
     const CONTAINER_PADDING = 40;
     if (size === 0) {
         size = Math.min(window.innerWidth - CONTAINER_PADDING, 800);
@@ -1215,22 +1214,19 @@ function resizeCanvas(observedWidth) {
 }
 
 // Initialize
-// Performance Optimization: Use ResizeObserver instead of window resize to prevent
-// layout thrashing and expensive redraws on mobile devices caused by fake resize events.
-const resizeObserver = new ResizeObserver(debounce(() => {
-    // Only resize if the container actually exists and is visible
-    if (wheelContainer && wheelContainer.offsetWidth > 0) {
-        resizeCanvas();
+// ⚡ Bolt: Use ResizeObserver instead of window resize events to eliminate
+// scroll-induced layout thrashing on mobile browsers and avoid synchronous offsetWidth reads.
+const resizeObserver = new ResizeObserver(debounce((entries) => {
+    for (let entry of entries) {
+        if (entry.target === wheelContainer) {
+            // entry.contentRect.width provides the width without forcing a synchronous layout
+            resizeCanvas(entry.contentRect.width);
+        }
     }
 }, 150));
 
-// Start observing the wheel container once it's available
 if (wheelContainer) {
     resizeObserver.observe(wheelContainer);
-}
-
-if (wheelContainer) {
-    wheelResizeObserver.observe(wheelContainer);
 }
 
 // Wait for DOM and layout to be ready
