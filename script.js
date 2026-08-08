@@ -837,6 +837,39 @@ function showButtonFeedback(button, message) {
 
 // --- Custom Deck Logic ---
 
+function updateCustomDeckSelectOptions() {
+    if (!customDeckSelect) return;
+    const options = customDeckSelect.options;
+    let availableCount = 0;
+
+    for (let i = 1; i < options.length; i++) {
+        const cardIndex = parseInt(options[i].value);
+        const card = allCards[cardIndex];
+        const isAdded = customDeckCards.some(c => c.display === card.display);
+
+        if (isAdded) {
+            options[i].disabled = true;
+            if (!options[i].textContent.endsWith(' (Added)')) {
+                options[i].textContent += ' (Added)';
+            }
+        } else {
+            options[i].disabled = false;
+            options[i].textContent = options[i].textContent.replace(' (Added)', '');
+            availableCount++;
+        }
+    }
+
+    if (availableCount === 0 && customDeckCards.length > 0) {
+        customDeckSelect.disabled = true;
+        customDeckSelect.title = 'All available cards have been added';
+        options[0].textContent = '-- All cards added --';
+    } else {
+        customDeckSelect.disabled = false;
+        customDeckSelect.removeAttribute('title');
+        options[0].textContent = '-- Select a card to add --';
+    }
+}
+
 function populateCustomDeckSelect() {
     customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
     const fragment = document.createDocumentFragment();
@@ -855,6 +888,7 @@ function populateCustomDeckSelect() {
 }
 
 function renderCustomDeckList() {
+    updateCustomDeckSelectOptions();
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
         customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';

@@ -75,3 +75,7 @@
 ## 2023-11-20 - Disable Dynamic Empty Dropdowns
 **Learning:** Found an accessibility issue pattern where dynamic dropdown menus (like "Mark cards as drawn") remained enabled even when there were no options left to select. Users could click the dropdown only to find it confusingly empty, which is a dead-end interaction.
 **Action:** Always disable dynamic select dropdowns when their backing data is empty. When doing so, provide explicit context via a `title` attribute (e.g. 'All cards have been drawn') and update the placeholder option text (e.g. '-- No cards available --') to explain why the input is blocked and prevent user frustration.
+
+## 2026-07-28 - Proactive Disabled State for Duplicate Choices in Dropdowns
+**Learning:** Found that when building a custom list, users were allowed to select an item they had already added, and were only given error feedback *after* trying to click "Add" again. Relying on after-the-fact error validation is a frustrating user experience, especially when the invalid choice (a duplicate) is known beforehand.
+**Action:** Proactively disable invalid choices (like duplicates) within UI elements like `<option disabled>` in selects, rather than relying on after-the-fact error validation. Always append explicit contextual text like '(Added)' to explain why the choice is unavailable directly within the dropdown to prevent confusion and dead-end interactions.
