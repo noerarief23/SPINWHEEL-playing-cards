@@ -595,22 +595,28 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
-    // ⚡ Bolt: Build the entire innerHTML string directly instead of using DocumentFragment
-    // This is significantly faster for replacing entire contents of a select element
+    let htmlStr = '';
+
+    // Clear existing options except the first one
     if (availableCards.length === 0) {
-        html += '<option value="">-- No cards available --</option>';
+        htmlStr = '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        const optionsHtml = availableCards.map((card, index) => {
-            const textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-            return `<option value="${index}">${textContent}</option>`;
-        }).join('');
-
-        cardSelect.innerHTML = '<option value="">-- Select a card --</option>' + optionsHtml;
+        htmlStr = '<option value="">-- Select a card --</option>';
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
+    
+    // ⚡ Bolt: Use innerHTML string concatenation instead of iterative document.createElement
+    // and DocumentFragment append loops to prevent large DOM manipulation overhead
+    // during state machine transitions.
+    for (let i = 0; i < availableCards.length; i++) {
+        const card = availableCards[i];
+        htmlStr += `<option value="${i}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
+    }
+
+    cardSelect.innerHTML = htmlStr;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -844,14 +850,14 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    // ⚡ Bolt: Build the entire innerHTML string directly instead of using DocumentFragment
-    // This is significantly faster for replacing entire contents of a select element
-    const optionsHtml = allCards.map((card, index) => {
-        const textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        return `<option value="${index}">${textContent}</option>`;
-    }).join('');
-
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>' + optionsHtml;
+    let htmlStr = '<option value="">-- Select a card to add --</option>';
+    // ⚡ Bolt: Use innerHTML string concatenation instead of iterative document.createElement
+    // and DocumentFragment append loops to prevent large DOM manipulation overhead.
+    for (let i = 0; i < allCards.length; i++) {
+        const card = allCards[i];
+        htmlStr += `<option value="${i}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
+    }
+    customDeckSelect.innerHTML = htmlStr;
 
     // Reset button state
     if (addCustomCardBtn) {
