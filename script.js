@@ -93,6 +93,10 @@ function preloadAudio() {
 
 // Play spinning sound
 function playSpinningSound() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     try {
         if (spinningAudio) {
             spinningAudio.currentTime = 0;
@@ -136,7 +140,6 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
-    // 🎨 Palette: Respect user's motion preferences
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         return;
     }
@@ -404,8 +407,8 @@ function spin(isRetry = false) {
         img.src = `cards/${RANK_MAP[predictedCard.rank]}_of_${SUIT_MAP[predictedCard.suitName]}.svg`;
     }
 
-    // Animation duration (5-8 seconds, or near-instant for reduced motion)
-    const duration = prefersReducedMotion ? 1 : (5000 + Math.random() * 3000);
+    // Animation duration (5-8 seconds)
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 5000 + Math.random() * 3000;
     let startTime = null;
     const startRotation = rotation;
 
