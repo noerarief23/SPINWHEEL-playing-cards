@@ -93,6 +93,11 @@ function preloadAudio() {
 
 // Play spinning sound
 function playSpinningSound() {
+    // Check for reduced motion preference to avoid disorienting/prolonged sounds
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     try {
         if (spinningAudio) {
             spinningAudio.currentTime = 0;
@@ -136,6 +141,11 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
+    // Check for reduced motion preference to skip visual particle effects
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     // ⚡ Bolt: Check if confetti is loaded to prevent errors
     if (typeof confetti !== 'function') {
         console.warn('Confetti library not loaded, skipping fireworks animation.');
@@ -357,12 +367,16 @@ function spin(isRetry = false) {
     resultCard.classList.remove('show');
     resultText.textContent = 'Spinning...';
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Play spinning sound effect
-    playSpinningSound();
+    if (!prefersReducedMotion) {
+        playSpinningSound();
+    }
 
     // ⚡ Bolt: Lazy-load confetti library during 5-8s idle animation time
     // This removes 30KB+ from critical rendering path and delays execution until needed
-    if (!window.confettiScriptLoaded) {
+    if (!window.confettiScriptLoaded && !prefersReducedMotion) {
         window.confettiScriptLoaded = true;
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
@@ -394,8 +408,9 @@ function spin(isRetry = false) {
         img.src = `cards/${RANK_MAP[predictedCard.rank]}_of_${SUIT_MAP[predictedCard.suitName]}.svg`;
     }
 
-    // Animation duration (5-8 seconds)
-    const duration = 5000 + Math.random() * 3000;
+    // Animation duration (5-8 seconds, or 1ms if reduced motion)
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const duration = prefersReducedMotion ? 1 : 5000 + Math.random() * 3000;
     let startTime = null;
     const startRotation = rotation;
 
@@ -528,7 +543,9 @@ function showResult() {
     setTimeout(() => {
         resultCard.classList.add('show');
         playResultSound();
-        startFireworksAnimation();
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            startFireworksAnimation();
+        }
     }, 100);
 
     const rankName = getRankName(currentCard.rank);
@@ -582,29 +599,27 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
+    // ⚡ Bolt: Replace DocumentFragment loop with innerHTML string building for faster dropdown population
+    let optionsHTML = '';
+
     // Clear existing options except the first one
     if (availableCards.length === 0) {
-        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
+        optionsHTML = '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+        optionsHTML = '<option value="">-- Select a card --</option>';
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
     
-    // Use DocumentFragment for performance
-    const fragment = document.createDocumentFragment();
-
-    // Add options for all available cards
+    // ⚡ Bolt: Use string concatenation for faster DOM replacement
+    let optionsHTML = '';
     availableCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.appendChild(fragment);
+    cardSelect.insertAdjacentHTML('beforeend', optionsHTML);
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -838,15 +853,12 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
-    const fragment = document.createDocumentFragment();
+    // ⚡ Bolt: Use string concatenation for faster initial rendering
+    let html = '<option value="">-- Select a card to add --</option>';
     allCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        html += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
-    customDeckSelect.appendChild(fragment);
+    customDeckSelect.innerHTML = html;
 
     // Reset button state
     if (addCustomCardBtn) {
@@ -854,7 +866,25 @@ function populateCustomDeckSelect() {
     }
 }
 
+function updateCustomDeckSelectOptions() {
+    Array.from(customDeckSelect.options).forEach(option => {
+        if (option.value === "") return;
+
+        const card = allCards[parseInt(option.value)];
+        const isAdded = customDeckCards.some(c => c.display === card.display);
+
+        if (isAdded) {
+            option.disabled = true;
+            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName} (Added)`;
+        } else {
+            option.disabled = false;
+            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        }
+    });
+}
+
 function renderCustomDeckList() {
+    updateCustomDeckSelectOptions();
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
         customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
@@ -870,29 +900,29 @@ function renderCustomDeckList() {
         clearCustomDeckBtn.removeAttribute('title');
     }
 
-    const fragment = document.createDocumentFragment();
-
+    // ⚡ Bolt: Use string concatenation instead of iterative createElement for faster rendering
+    let html = '';
     customDeckCards.forEach((card, index) => {
-        const item = document.createElement('li');
-        item.className = 'custom-deck-item';
-
-        const cardText = document.createElement('span');
-        cardText.className = card.color;
-        cardText.textContent = card.display;
-
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-custom-card';
-        removeBtn.textContent = '×';
-        removeBtn.setAttribute('aria-label', `Remove ${getRankName(card.rank)} of ${card.suitName}`);
-        removeBtn.onclick = () => removeCustomCard(index);
-
-        item.appendChild(cardText);
-        item.appendChild(removeBtn);
-        fragment.appendChild(item);
+        html += `
+            <li class="custom-deck-item">
+                <span class="${card.color}">${card.display}</span>
+                <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
+            </li>
+        `;
     });
 
-    customDeckList.appendChild(fragment);
+    customDeckList.innerHTML = html;
 }
+
+// ⚡ Bolt: Event delegation for custom deck list to avoid inline onclick handlers in string templates
+customDeckList.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-custom-card')) {
+        const index = parseInt(e.target.getAttribute('data-index'), 10);
+        if (!isNaN(index)) {
+            removeCustomCard(index);
+        }
+    }
+});
 
 function removeCustomCard(index) {
     customDeckCards.splice(index, 1);
@@ -1060,7 +1090,17 @@ function handleResetClick(e) {
         } else {
             resetButton.removeAttribute('aria-label');
         }
+        const wasFocused = document.activeElement === resetButton;
         resetGame();
+
+        // Restore focus since reset button disables itself if no cards are drawn
+        if (wasFocused) {
+            if (!spinButton.disabled) {
+                spinButton.focus();
+            } else {
+                cardCountSelect.focus(); // Fallback if spin button is disabled
+            }
+        }
     } else {
         // First click - ask for confirmation using showFeedback helper style approach
         // to avoid custom inline CSS
