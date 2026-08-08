@@ -597,6 +597,7 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
+    // ⚡ Bolt: Build complete HTML string for single-pass assignment to avoid iterative DOM layout penalties
     let htmlStr = '';
 
     // Clear existing options except the first one
@@ -610,13 +611,10 @@ function updateCardSelect() {
         cardSelect.removeAttribute('title');
     }
     
-    // ⚡ Bolt: Use innerHTML string concatenation instead of iterative document.createElement
-    // and DocumentFragment append loops to prevent large DOM manipulation overhead
-    // during state machine transitions.
-    for (let i = 0; i < availableCards.length; i++) {
-        const card = availableCards[i];
-        htmlStr += `<option value="${i}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
-    }
+    // ⚡ Bolt: Use string concatenation instead of DocumentFragment for faster complete element replacement
+    availableCards.forEach((card, index) => {
+        htmlStr += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
+    });
 
     cardSelect.innerHTML = htmlStr;
 
@@ -852,13 +850,14 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
+    // ⚡ Bolt: Build complete HTML string for single-pass assignment
     let htmlStr = '<option value="">-- Select a card to add --</option>';
-    // ⚡ Bolt: Use innerHTML string concatenation instead of iterative document.createElement
-    // and DocumentFragment append loops to prevent large DOM manipulation overhead.
-    for (let i = 0; i < allCards.length; i++) {
-        const card = allCards[i];
-        htmlStr += `<option value="${i}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
-    }
+
+    // ⚡ Bolt: Use string concatenation instead of DocumentFragment for faster complete element replacement
+    allCards.forEach((card, index) => {
+        htmlStr += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
+    });
+
     customDeckSelect.innerHTML = htmlStr;
 
     // Reset button state
