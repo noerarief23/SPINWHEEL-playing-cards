@@ -136,6 +136,7 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
+    // 🎨 Palette: Respect user's motion preferences
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         return;
     }
@@ -361,6 +362,7 @@ function spin(isRetry = false) {
     resultCard.classList.remove('show');
     resultText.textContent = 'Spinning...';
 
+    // 🎨 Palette: Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Play spinning sound effect
@@ -402,7 +404,7 @@ function spin(isRetry = false) {
         img.src = `cards/${RANK_MAP[predictedCard.rank]}_of_${SUIT_MAP[predictedCard.suitName]}.svg`;
     }
 
-    // Animation duration (5-8 seconds)
+    // Animation duration (5-8 seconds, or near-instant for reduced motion)
     const duration = prefersReducedMotion ? 1 : (5000 + Math.random() * 3000);
     let startTime = null;
     const startRotation = rotation;
