@@ -1131,17 +1131,17 @@ function debounce(func, wait) {
 }
 
 // Handle responsive canvas sizing
-function resizeCanvas() {
+function resizeCanvas(observedWidth) {
     // ⚡ Bolt: Use globally cached wheelContainer to avoid redundant DOM queries
     if (!wheelContainer) {
         console.error('Wheel container not found');
         return;
     }
     
-    // Use ONLY offsetWidth (aspect-ratio ensures 1:1)
-    let size = wheelContainer.offsetWidth;
+    // Use ONLY offsetWidth (aspect-ratio ensures 1:1) or observed width to avoid layout thrashing
+    let size = observedWidth !== undefined ? observedWidth : wheelContainer.offsetWidth;
     
-    // Fallback if offsetWidth is 0
+    // Fallback if size is 0
     const CONTAINER_PADDING = 40;
     if (size === 0) {
         size = Math.min(window.innerWidth - CONTAINER_PADDING, 800);
@@ -1174,12 +1174,20 @@ function resizeCanvas() {
 }
 
 // Initialize
-// Performance Optimization: Debounce canvas resize to prevent expensive redraws
-let resizeTimeout;
-window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resizeCanvas, 150);
-});
+// ⚡ Bolt: Use ResizeObserver instead of window resize events to eliminate
+// scroll-induced layout thrashing on mobile browsers and avoid synchronous offsetWidth reads.
+const resizeObserver = new ResizeObserver(debounce((entries) => {
+    for (let entry of entries) {
+        if (entry.target === wheelContainer) {
+            // entry.contentRect.width provides the width without forcing a synchronous layout
+            resizeCanvas(entry.contentRect.width);
+        }
+    }
+}, 150));
+
+if (wheelContainer) {
+    resizeObserver.observe(wheelContainer);
+}
 
 // Wait for DOM and layout to be ready
 function waitForLayout(callback) {
