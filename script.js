@@ -93,6 +93,10 @@ function preloadAudio() {
 
 // Play spinning sound
 function playSpinningSound() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     try {
         if (spinningAudio) {
             spinningAudio.currentTime = 0;
@@ -136,6 +140,11 @@ function playResultSound() {
 
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        return;
+    }
+
     // ⚡ Bolt: Check if confetti is loaded to prevent errors
     if (typeof confetti !== 'function') {
         console.warn('Confetti library not loaded, skipping fireworks animation.');
@@ -588,29 +597,28 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
+    let htmlStr = '';
+
     // Clear existing options except the first one
     if (availableCards.length === 0) {
-        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
+        htmlStr = '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+        htmlStr = '<option value="">-- Select a card --</option>';
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
     
-    // Use DocumentFragment for performance
-    const fragment = document.createDocumentFragment();
+    // ⚡ Bolt: Use innerHTML string concatenation instead of iterative document.createElement
+    // and DocumentFragment append loops to prevent large DOM manipulation overhead
+    // during state machine transitions.
+    for (let i = 0; i < availableCards.length; i++) {
+        const card = availableCards[i];
+        htmlStr += `<option value="${i}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
+    }
 
-    // Add options for all available cards
-    availableCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
-    });
-
-    cardSelect.appendChild(fragment);
+    cardSelect.innerHTML = htmlStr;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -844,15 +852,14 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
-    const fragment = document.createDocumentFragment();
-    allCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
-    });
-    customDeckSelect.appendChild(fragment);
+    let htmlStr = '<option value="">-- Select a card to add --</option>';
+    // ⚡ Bolt: Use innerHTML string concatenation instead of iterative document.createElement
+    // and DocumentFragment append loops to prevent large DOM manipulation overhead.
+    for (let i = 0; i < allCards.length; i++) {
+        const card = allCards[i];
+        htmlStr += `<option value="${i}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
+    }
+    customDeckSelect.innerHTML = htmlStr;
 
     // Reset button state
     if (addCustomCardBtn) {
@@ -1066,7 +1073,17 @@ function handleResetClick(e) {
         } else {
             resetButton.removeAttribute('aria-label');
         }
+        const wasFocused = document.activeElement === resetButton;
         resetGame();
+
+        // Restore focus since reset button disables itself if no cards are drawn
+        if (wasFocused) {
+            if (!spinButton.disabled) {
+                spinButton.focus();
+            } else {
+                cardCountSelect.focus(); // Fallback if spin button is disabled
+            }
+        }
     } else {
         // First click - ask for confirmation using showFeedback helper style approach
         // to avoid custom inline CSS
