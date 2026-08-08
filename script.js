@@ -1070,7 +1070,17 @@ function handleResetClick(e) {
         } else {
             resetButton.removeAttribute('aria-label');
         }
+        const wasFocused = document.activeElement === resetButton;
         resetGame();
+
+        // Restore focus since reset button disables itself if no cards are drawn
+        if (wasFocused) {
+            if (!spinButton.disabled) {
+                spinButton.focus();
+            } else {
+                cardCountSelect.focus(); // Fallback if spin button is disabled
+            }
+        }
     } else {
         // First click - ask for confirmation using showFeedback helper style approach
         // to avoid custom inline CSS
