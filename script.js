@@ -93,6 +93,10 @@ function preloadAudio() {
 
 // Play spinning sound
 function playSpinningSound() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
     try {
         if (spinningAudio) {
             spinningAudio.currentTime = 0;
@@ -591,29 +595,22 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
-    // Clear existing options except the first one
+    // ⚡ Bolt: Build the entire innerHTML string directly instead of using DocumentFragment
+    // This is significantly faster for replacing entire contents of a select element
     if (availableCards.length === 0) {
-        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
+        html += '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+        const optionsHtml = availableCards.map((card, index) => {
+            const textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+            return `<option value="${index}">${textContent}</option>`;
+        }).join('');
+
+        cardSelect.innerHTML = '<option value="">-- Select a card --</option>' + optionsHtml;
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
-    
-    // Use DocumentFragment for performance
-    const fragment = document.createDocumentFragment();
-
-    // Add options for all available cards
-    availableCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
-    });
-
-    cardSelect.appendChild(fragment);
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -847,15 +844,14 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
-    const fragment = document.createDocumentFragment();
-    allCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
-    });
-    customDeckSelect.appendChild(fragment);
+    // ⚡ Bolt: Build the entire innerHTML string directly instead of using DocumentFragment
+    // This is significantly faster for replacing entire contents of a select element
+    const optionsHtml = allCards.map((card, index) => {
+        const textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        return `<option value="${index}">${textContent}</option>`;
+    }).join('');
+
+    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>' + optionsHtml;
 
     // Reset button state
     if (addCustomCardBtn) {
@@ -1069,7 +1065,17 @@ function handleResetClick(e) {
         } else {
             resetButton.removeAttribute('aria-label');
         }
+        const wasFocused = document.activeElement === resetButton;
         resetGame();
+
+        // Restore focus since reset button disables itself if no cards are drawn
+        if (wasFocused) {
+            if (!spinButton.disabled) {
+                spinButton.focus();
+            } else {
+                cardCountSelect.focus(); // Fallback if spin button is disabled
+            }
+        }
     } else {
         // First click - ask for confirmation using showFeedback helper style approach
         // to avoid custom inline CSS
