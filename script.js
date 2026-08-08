@@ -1212,26 +1212,19 @@ function resizeCanvas(observedWidth) {
 }
 
 // Initialize
-// ⚡ Bolt: Use ResizeObserver instead of window resize event to prevent synchronous layout thrashing.
-// ResizeObserver provides the exact new dimensions without forcing a browser style recalculation/reflow,
-// and it naturally debounces layout shifts and ignores fake mobile "scroll resizes" where width doesn't change.
-let resizeTimeout;
-const wheelResizeObserver = new ResizeObserver((entries) => {
-    // We still debounce the heavy canvas redraw, but using the non-blocking observed width
-    if (resizeTimeout) clearTimeout(resizeTimeout);
+// Performance Optimization: Use ResizeObserver instead of window resize to prevent
+// layout thrashing and expensive redraws on mobile devices caused by fake resize events.
+const resizeObserver = new ResizeObserver(debounce(() => {
+    // Only resize if the container actually exists and is visible
+    if (wheelContainer && wheelContainer.offsetWidth > 0) {
+        resizeCanvas();
+    }
+}, 150));
 
-    resizeTimeout = setTimeout(() => {
-        for (let entry of entries) {
-            if (entry.contentBoxSize) {
-                // ResizeObserver provides exact new dimensions without causing a reflow
-                const width = entry.contentBoxSize[0].inlineSize;
-                resizeCanvas(width);
-            } else {
-                resizeCanvas(entry.contentRect.width);
-            }
-        }
-    }, 150);
-});
+// Start observing the wheel container once it's available
+if (wheelContainer) {
+    resizeObserver.observe(wheelContainer);
+}
 
 if (wheelContainer) {
     wheelResizeObserver.observe(wheelContainer);
