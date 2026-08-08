@@ -56,3 +56,6 @@
 ## 2026-08-03 - DOM Population with innerHTML vs DocumentFragment
 **Learning:** For replacing the entirety of a container's contents (like `<select>` dropdowns), building an HTML string via iteration and assigning it via `innerHTML` is noticeably faster than using `document.createElement()` and `appendChild()` on a `DocumentFragment`. `innerHTML` leverages the browser's C++ HTML parser, which avoids the overhead of traversing the JS-C++ bindings for every created node.
 **Action:** When regenerating large lists or options within a container, prefer string concatenation and `innerHTML` (or `insertAdjacentHTML`) instead of iterative DOM API methods.
+## 2024-08-01 - DOM manipulation overhead during state transitions
+**Learning:** Rebuilding a large DOM structure like a 52-item `<select>` dropdown iteratively with `document.createElement` and a `DocumentFragment` can cause noticeable overhead, especially when triggered during UI state transitions (like the end of a spin animation).
+**Action:** When a DOM element requires a complete contents replacement and the content is composed of trusted data, build the HTML structure as a concatenated string and assign it to `innerHTML`. This passes the task to the browser's optimized HTML parser and avoids excessive DOM node creation overhead.
