@@ -595,28 +595,22 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
-    let html = '';
-
-    // Clear existing options except the first one
+    // ⚡ Bolt: Build the entire innerHTML string directly instead of using DocumentFragment
+    // This is significantly faster for replacing entire contents of a select element
     if (availableCards.length === 0) {
         html += '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        html += '<option value="">-- Select a card --</option>';
+        const optionsHtml = availableCards.map((card, index) => {
+            const textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+            return `<option value="${index}">${textContent}</option>`;
+        }).join('');
+
+        cardSelect.innerHTML = '<option value="">-- Select a card --</option>' + optionsHtml;
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
-    
-    // ⚡ Bolt: Build HTML string instead of DocumentFragment for faster rendering
-    // Rebuilding DOM iteratively via JS is slower than passing concatenated string payloads
-    // directly to the browser's optimized HTML parser (innerHTML).
-    for (let index = 0; index < availableCards.length; index++) {
-        const card = availableCards[index];
-        html += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
-    }
-
-    cardSelect.innerHTML = html;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -850,15 +844,14 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    // ⚡ Bolt: Build HTML string instead of DocumentFragment for faster rendering
-    let html = '<option value="">-- Select a card to add --</option>';
+    // ⚡ Bolt: Build the entire innerHTML string directly instead of using DocumentFragment
+    // This is significantly faster for replacing entire contents of a select element
+    const optionsHtml = allCards.map((card, index) => {
+        const textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        return `<option value="${index}">${textContent}</option>`;
+    }).join('');
 
-    for (let index = 0; index < allCards.length; index++) {
-        const card = allCards[index];
-        html += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
-    }
-
-    customDeckSelect.innerHTML = html;
+    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>' + optionsHtml;
 
     // Reset button state
     if (addCustomCardBtn) {
