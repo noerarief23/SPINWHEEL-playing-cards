@@ -1168,15 +1168,16 @@ function debounce(func, wait) {
 }
 
 // Handle responsive canvas sizing
-function resizeCanvas() {
+function resizeCanvas(observedWidth) {
     // ⚡ Bolt: Use globally cached wheelContainer to avoid redundant DOM queries
     if (!wheelContainer) {
         console.error('Wheel container not found');
         return;
     }
     
-    // Use ONLY offsetWidth (aspect-ratio ensures 1:1)
-    let size = wheelContainer.offsetWidth;
+    // ⚡ Bolt: Use observedWidth from ResizeObserver to avoid synchronous layout reflow (style recalculation)
+    // caused by reading offsetWidth. If not provided, fallback to offsetWidth.
+    let size = observedWidth ?? wheelContainer.offsetWidth;
     
     // Fallback if offsetWidth is 0
     const CONTAINER_PADDING = 40;
@@ -1211,12 +1212,30 @@ function resizeCanvas() {
 }
 
 // Initialize
-// Performance Optimization: Debounce canvas resize to prevent expensive redraws
+// ⚡ Bolt: Use ResizeObserver instead of window resize event to prevent synchronous layout thrashing.
+// ResizeObserver provides the exact new dimensions without forcing a browser style recalculation/reflow,
+// and it naturally debounces layout shifts and ignores fake mobile "scroll resizes" where width doesn't change.
 let resizeTimeout;
-window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resizeCanvas, 150);
+const wheelResizeObserver = new ResizeObserver((entries) => {
+    // We still debounce the heavy canvas redraw, but using the non-blocking observed width
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+
+    resizeTimeout = setTimeout(() => {
+        for (let entry of entries) {
+            if (entry.contentBoxSize) {
+                // ResizeObserver provides exact new dimensions without causing a reflow
+                const width = entry.contentBoxSize[0].inlineSize;
+                resizeCanvas(width);
+            } else {
+                resizeCanvas(entry.contentRect.width);
+            }
+        }
+    }, 150);
 });
+
+if (wheelContainer) {
+    wheelResizeObserver.observe(wheelContainer);
+}
 
 // Wait for DOM and layout to be ready
 function waitForLayout(callback) {
