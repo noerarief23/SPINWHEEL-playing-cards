@@ -78,3 +78,7 @@
 ## 2026-07-28 - Reduced Motion Support for Custom JS Animations
 **Learning:** Adding an `@media (prefers-reduced-motion: reduce)` block in CSS handles native transitions and animations, but it doesn't automatically stop JavaScript-driven animations (like those rendered on `<canvas>`) or their associated audio effects. If these are overlooked, users with motion sensitivities are still subjected to potentially triggering content.
 **Action:** Always explicitly check `window.matchMedia('(prefers-reduced-motion: reduce)').matches` in JavaScript before initiating custom animations, particle effects (like confetti), or accompanying sound effects. Use this check to either bypass the animation completely (setting duration to 0) or provide a simplified, motion-free alternative.
+
+## 2024-05-18 - Managing Focus in Destructive Actions
+**Learning:** When a destructive action button (like Reset) uses inline confirmation state and then disables itself synchronously upon success, keyboard focus will drop to the document body, breaking the keyboard navigation flow.
+**Action:** Always capture `document.activeElement` before executing the destructive action. If the triggering button was focused, explicitly restore focus to the next logical interactive element (e.g., the primary action button like `spinButton`) after the action completes.
