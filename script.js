@@ -141,7 +141,7 @@ function playResultSound() {
 // Start fireworks animation using canvas-confetti
 function startFireworksAnimation() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return; // Disable particle effects for reduced-motion
+        return;
     }
 
     // ⚡ Bolt: Check if confetti is loaded to prevent errors
@@ -367,7 +367,7 @@ function spin(isRetry = false) {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Play spinning sound effect only if motion is allowed
+    // Play spinning sound effect
     if (!prefersReducedMotion) {
         playSpinningSound();
     }
@@ -407,7 +407,6 @@ function spin(isRetry = false) {
     }
 
     // Animation duration (5-8 seconds)
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const duration = prefersReducedMotion ? 1 : 5000 + Math.random() * 3000;
     let startTime = null;
     const startRotation = rotation;

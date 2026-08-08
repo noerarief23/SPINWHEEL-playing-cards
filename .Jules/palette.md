@@ -76,6 +76,9 @@
 **Learning:** Found an accessibility issue pattern where dynamic dropdown menus (like "Mark cards as drawn") remained enabled even when there were no options left to select. Users could click the dropdown only to find it confusingly empty, which is a dead-end interaction.
 **Action:** Always disable dynamic select dropdowns when their backing data is empty. When doing so, provide explicit context via a `title` attribute (e.g. 'All cards have been drawn') and update the placeholder option text (e.g. '-- No cards available --') to explain why the input is blocked and prevent user frustration.
 
+## 2026-08-06 - Respecting Reduced Motion Preferences in Canvas Applications
+**Learning:** Found that custom canvas animations (like a 5-8 second spin wheel) and prolonged sound effects (like a drumroll) are not natively paused or muted by the OS's 'reduced motion' setting, which can trigger vertigo, nausea, or auditory fatigue for sensitive users. Furthermore, setting animation duration completely to 0 can cause division-by-zero math errors in some animation loops.
+**Action:** Always explicitly check `window.matchMedia('(prefers-reduced-motion: reduce)').matches` in JavaScript. When true, bypass custom animations (using a safe near-zero duration like 1ms instead of 0) and mute specifically prolonged/disorienting sounds. Standard functional or success audio (like a quick 'win' chime) should remain, as motion preferences are distinct from general auditory preferences.
 ## 2024-08-04 - Motion vs Auditory Preferences
 **Learning:** Motion preferences (e.g., `prefers-reduced-motion`) are distinct from general auditory preferences. When applying reduced-motion checks, users still expect functional/success feedback unless they specifically disable sound.
 **Action:** Do not arbitrarily mute standard functional or success audio feedback based on motion preferences; only disable prolonged or visually-tied disorienting sounds.
