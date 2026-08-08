@@ -365,12 +365,16 @@ function spin(isRetry = false) {
     resultCard.classList.remove('show');
     resultText.textContent = 'Spinning...';
 
-    // Play spinning sound effect
-    playSpinningSound();
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Play spinning sound effect only if motion is allowed
+    if (!prefersReducedMotion) {
+        playSpinningSound();
+    }
 
     // ⚡ Bolt: Lazy-load confetti library during 5-8s idle animation time
     // This removes 30KB+ from critical rendering path and delays execution until needed
-    if (!window.confettiScriptLoaded) {
+    if (!window.confettiScriptLoaded && !prefersReducedMotion) {
         window.confettiScriptLoaded = true;
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
@@ -537,7 +541,9 @@ function showResult() {
     setTimeout(() => {
         resultCard.classList.add('show');
         playResultSound();
-        startFireworksAnimation();
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            startFireworksAnimation();
+        }
     }, 100);
 
     const rankName = getRankName(currentCard.rank);
@@ -591,29 +597,26 @@ function updateStats() {
 
 // Update the card select dropdown with available cards
 function updateCardSelect() {
+    // ⚡ Bolt: Replace DocumentFragment loop with innerHTML string building for faster dropdown population
+    let optionsHTML = '';
+
     // Clear existing options except the first one
     if (availableCards.length === 0) {
-        cardSelect.innerHTML = '<option value="">-- No cards available --</option>';
+        optionsHTML = '<option value="">-- No cards available --</option>';
         cardSelect.disabled = true;
         cardSelect.title = 'No cards left in the deck';
     } else {
-        cardSelect.innerHTML = '<option value="">-- Select a card --</option>';
+        optionsHTML = '<option value="">-- Select a card --</option>';
         cardSelect.disabled = false;
         cardSelect.removeAttribute('title');
     }
-    
-    // Use DocumentFragment for performance
-    const fragment = document.createDocumentFragment();
 
     // Add options for all available cards
     availableCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.appendChild(fragment);
+    cardSelect.innerHTML = optionsHTML;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -847,15 +850,14 @@ function showButtonFeedback(button, message) {
 // --- Custom Deck Logic ---
 
 function populateCustomDeckSelect() {
-    customDeckSelect.innerHTML = '<option value="">-- Select a card to add --</option>';
-    const fragment = document.createDocumentFragment();
+    // ⚡ Bolt: Replace DocumentFragment loop with innerHTML string building for faster dropdown population
+    let optionsHTML = '<option value="">-- Select a card to add --</option>';
+
     allCards.forEach((card, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        fragment.appendChild(option);
+        optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
-    customDeckSelect.appendChild(fragment);
+
+    customDeckSelect.innerHTML = optionsHTML;
 
     // Reset button state
     if (addCustomCardBtn) {
@@ -863,7 +865,25 @@ function populateCustomDeckSelect() {
     }
 }
 
+function updateCustomDeckSelectOptions() {
+    Array.from(customDeckSelect.options).forEach(option => {
+        if (option.value === "") return;
+
+        const card = allCards[parseInt(option.value)];
+        const isAdded = customDeckCards.some(c => c.display === card.display);
+
+        if (isAdded) {
+            option.disabled = true;
+            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName} (Added)`;
+        } else {
+            option.disabled = false;
+            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
+        }
+    });
+}
+
 function renderCustomDeckList() {
+    updateCustomDeckSelectOptions();
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
         customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
@@ -893,6 +913,7 @@ function renderCustomDeckList() {
         removeBtn.className = 'remove-custom-card';
         removeBtn.textContent = '×';
         removeBtn.setAttribute('aria-label', `Remove ${getRankName(card.rank)} of ${card.suitName}`);
+        removeBtn.setAttribute('title', `Remove ${getRankName(card.rank)} of ${card.suitName}`);
         removeBtn.onclick = () => removeCustomCard(index);
 
         item.appendChild(cardText);
@@ -1069,7 +1090,17 @@ function handleResetClick(e) {
         } else {
             resetButton.removeAttribute('aria-label');
         }
+        const wasFocused = document.activeElement === resetButton;
         resetGame();
+
+        // Restore focus since reset button disables itself if no cards are drawn
+        if (wasFocused) {
+            if (!spinButton.disabled) {
+                spinButton.focus();
+            } else {
+                cardCountSelect.focus(); // Fallback if spin button is disabled
+            }
+        }
     } else {
         // First click - ask for confirmation using showFeedback helper style approach
         // to avoid custom inline CSS
