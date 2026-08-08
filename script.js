@@ -368,7 +368,7 @@ function spin(isRetry = false) {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Play spinning sound effect (skip if prefers reduced motion)
+    // Play spinning sound effect only if motion is allowed
     if (!prefersReducedMotion) {
         playSpinningSound();
     }
@@ -407,8 +407,8 @@ function spin(isRetry = false) {
         img.src = `cards/${RANK_MAP[predictedCard.rank]}_of_${SUIT_MAP[predictedCard.suitName]}.svg`;
     }
 
-    // Animation duration (5-8 seconds, or 1ms if reduced motion)
-    const duration = prefersReducedMotion ? 1 : (5000 + Math.random() * 3000);
+    // Animation duration (5-8 seconds)
+    const duration = prefersReducedMotion ? 1 : 5000 + Math.random() * 3000;
     let startTime = null;
     const startRotation = rotation;
 
@@ -541,7 +541,9 @@ function showResult() {
     setTimeout(() => {
         resultCard.classList.add('show');
         playResultSound();
-        startFireworksAnimation();
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            startFireworksAnimation();
+        }
     }, 100);
 
     const rankName = getRankName(currentCard.rank);
