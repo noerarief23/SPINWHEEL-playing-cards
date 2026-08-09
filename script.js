@@ -409,7 +409,7 @@ function spin(isRetry = false) {
     }
 
     // Animation duration (5-8 seconds, or 1ms if reduced motion)
-    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     const duration = prefersReducedMotion ? 1 : 5000 + Math.random() * 3000;
     let startTime = null;
     const startRotation = rotation;
@@ -614,7 +614,6 @@ function updateCardSelect() {
     }
     
     // ⚡ Bolt: Use string concatenation for faster DOM replacement
-    let optionsHTML = '';
     availableCards.forEach((card, index) => {
         optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
@@ -857,10 +856,14 @@ function updateCustomDeckSelectOptions() {
     const options = customDeckSelect.options;
     let availableCount = 0;
 
+    // ⚡ Bolt: Cache custom deck cards in a Set for O(1) lookups
+    // This replaces the O(n²) some() array scan inside the O(n) options loop
+    const addedCardsSet = new Set(customDeckCards.map(c => c.display));
+
     for (let i = 1; i < options.length; i++) {
         const cardIndex = parseInt(options[i].value);
         const card = allCards[cardIndex];
-        const isAdded = customDeckCards.some(c => c.display === card.display);
+        const isAdded = addedCardsSet.has(card.display);
 
         if (isAdded) {
             options[i].disabled = true;
@@ -899,22 +902,7 @@ function populateCustomDeckSelect() {
     }
 }
 
-function updateCustomDeckSelectOptions() {
-    Array.from(customDeckSelect.options).forEach(option => {
-        if (option.value === "") return;
 
-        const card = allCards[parseInt(option.value)];
-        const isAdded = customDeckCards.some(c => c.display === card.display);
-
-        if (isAdded) {
-            option.disabled = true;
-            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName} (Added)`;
-        } else {
-            option.disabled = false;
-            option.textContent = `${card.display} - ${getRankName(card.rank)} of ${card.suitName}`;
-        }
-    });
-}
 
 function renderCustomDeckList() {
     updateCustomDeckSelectOptions();

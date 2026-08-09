@@ -71,3 +71,6 @@
 ## 2024-08-01 - DOM manipulation overhead during state transitions
 **Learning:** Rebuilding a large DOM structure like a 52-item `<select>` dropdown iteratively with `document.createElement` and a `DocumentFragment` can cause noticeable overhead, especially when triggered during UI state transitions (like the end of a spin animation).
 **Action:** When a DOM element requires a complete contents replacement and the content is composed of trusted data, build the HTML structure as a concatenated string and assign it to `innerHTML`. This passes the task to the browser's optimized HTML parser and avoids excessive DOM node creation overhead.
+## 2026-08-09 - O(1) Lookups in Dropdown Validation
+**Learning:** In the `updateCustomDeckSelectOptions` function, checking if each card is already in the custom deck inside a loop using `Array.some` resulted in an inefficient O(N²) nested loop complexity. This can cause unnecessary layout thrashing or long frame execution times when iterating over DOM options.
+**Action:** Replaced the `Array.some` lookup inside the loop with an O(1) hash map lookup using a `Set` of the added cards' display properties before the loop. This reduces the complexity to O(N) and significantly improves performance during UI state validation.
