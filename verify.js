@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
     await page.emulateMedia({ reducedMotion: 'reduce' });
 
     // Serve the page using local python server just in case
-    await page.goto('http://localhost:8000');
+    await page.goto('http://localhost:8080');
 
     // Wait for everything to load and layout to stabilize
     await page.waitForLoadState('networkidle');
