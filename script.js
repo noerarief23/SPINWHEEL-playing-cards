@@ -618,7 +618,8 @@ function updateCardSelect() {
         optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.insertAdjacentHTML('beforeend', optionsHTML);
+    // ⚡ Bolt: Use innerHTML to overwrite the container and prevent O(N^2) memory leaks
+    cardSelect.innerHTML = optionsHTML;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {

@@ -74,3 +74,6 @@
 ## 2026-08-09 - O(1) Lookups in Dropdown Validation
 **Learning:** In the `updateCustomDeckSelectOptions` function, checking if each card is already in the custom deck inside a loop using `Array.some` resulted in an inefficient O(N²) nested loop complexity. This can cause unnecessary layout thrashing or long frame execution times when iterating over DOM options.
 **Action:** Replaced the `Array.some` lookup inside the loop with an O(1) hash map lookup using a `Set` of the added cards' display properties before the loop. This reduces the complexity to O(N) and significantly improves performance during UI state validation.
+## 2026-08-11 - Prevent DOM memory leak in dropdown updates
+**Learning:** Updating dynamic lists like dropdown options using `insertAdjacentHTML('beforeend', ...)` inside state-update functions (e.g., `updateCardSelect`) appends new elements without removing the old ones. This results in massive O(N^2) memory leaks and DOM bloat each time the state changes.
+**Action:** When updating dynamic lists or dropdowns where the entire list structure is replaced, manually clear the container first or use `element.innerHTML = newHTML` instead of `insertAdjacentHTML('beforeend', ...)`. This cleanly resets the container and prevents memory leaks.
