@@ -643,6 +643,7 @@ function addToHistory(card) {
     const cardDisplay = document.createElement('div');
     cardDisplay.className = `history-item-card ${card.color}`;
     cardDisplay.textContent = card.display;
+    cardDisplay.setAttribute('aria-hidden', 'true');
     
     const cardName = document.createElement('div');
     cardName.className = 'history-item-name';
