@@ -111,3 +111,6 @@
 ## 2024-05-18 - Managing Focus in Destructive Actions
 **Learning:** When a destructive action button (like Reset) uses inline confirmation state and then disables itself synchronously upon success, keyboard focus will drop to the document body, breaking the keyboard navigation flow.
 **Action:** Always capture `document.activeElement` before executing the destructive action. If the triggering button was focused, explicitly restore focus to the next logical interactive element (e.g., the primary action button like `spinButton`) after the action completes.
+## 2026-08-13 - Redundant Screen Reader Announcements for Decorative Icons
+**Learning:** Found an accessibility issue pattern where decorative elements containing unicode symbols (like `5♥`) were being announced by screen readers alongside their fully spelled-out text equivalents (like "5 of Hearts"). This creates a redundant and annoying auditory experience (e.g. "5 hearts 5 of Hearts").
+**Action:** Always apply `aria-hidden="true"` to elements containing decorative unicode suit symbols when the full text name is already adjacent and visible in the DOM. Avoid adding an additional `.sr-only` element if the full text name is already present, to prevent double-reading by screen readers.
