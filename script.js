@@ -618,7 +618,9 @@ function updateCardSelect() {
         optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.insertAdjacentHTML('beforeend', optionsHTML);
+    // ⚡ Bolt: Use innerHTML to fully overwrite the container contents instead of insertAdjacentHTML('beforeend').
+    // This fixes a severe O(N^2) memory leak where the remaining 52 options were appended endlessly on every UI update without clearing previous nodes.
+    cardSelect.innerHTML = optionsHTML;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
