@@ -115,3 +115,7 @@
 ## 2024-05-20 - Hide Decorative Card Suits from Screen Readers
 **Learning:** When decorative unicode suit symbols (like `♠` or `♥`) are displayed next to their full text names (like "Ace of Spades") in lists or components, screen readers will announce both consecutively, causing a confusing and redundant auditory experience (e.g., "A Spade Suit Ace of Spades").
 **Action:** Always wrap decorative unicode symbols in a `span` or `div` with `aria-hidden="true"`, ensuring only the full semantic text representation is accessible to screen readers, keeping the auditory output clean and concise.
+
+## 2026-08-07 - Visible Context for Sighted Users in Lists
+**Learning:** Found a UX/a11y issue in the custom deck builder list: The full card names (e.g., "Ace of Spades") were hidden from sighted users using `.sr-only`, leaving only the symbol ("A♠"). This created a disconnect between the dropdown menu (which showed the full name) and the selected list, making it harder for users to quickly verify their selections. Sighted users benefit from clear, descriptive text just as much as screen reader users.
+**Action:** Always aim to make descriptive text visible to all users unless it creates extreme clutter. If an adjacent symbol is purely decorative, hide the symbol from screen readers (`aria-hidden="true"`) and show the text, rather than the other way around.
