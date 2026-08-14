@@ -868,14 +868,18 @@ function updateCustomDeckSelectOptions() {
         const card = allCards[cardIndex];
         const isAdded = addedCardsSet.has(card.display);
 
+        // ⚡ Bolt: Added conditional checks before mutating DOM properties (.disabled, .textContent)
+        // to prevent unnecessary layout thrashing and paint invalidations during the loop iteration.
         if (isAdded) {
-            options[i].disabled = true;
+            if (!options[i].disabled) options[i].disabled = true;
             if (!options[i].textContent.endsWith(' (Added)')) {
                 options[i].textContent += ' (Added)';
             }
         } else {
-            options[i].disabled = false;
-            options[i].textContent = options[i].textContent.replace(' (Added)', '');
+            if (options[i].disabled) options[i].disabled = false;
+            if (options[i].textContent.endsWith(' (Added)')) {
+                options[i].textContent = options[i].textContent.replace(' (Added)', '');
+            }
             availableCount++;
         }
     }
