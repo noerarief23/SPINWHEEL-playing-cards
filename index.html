@@ -38,7 +38,7 @@
             </main>
             <!-- Card History -->
             <aside class="history-panel">
-                <h3>Card History</h3>
+                <h2>Card History</h2>
                 <ul id="cardHistory" class="card-history-list" aria-label="Card history">
                     <li class="empty-state">No cards drawn yet. Spin the wheel to get started!</li>
                 </ul>
@@ -50,7 +50,7 @@
         </div>
 
         <!-- Config Panel -->
-        <div class="config-panel">
+        <section class="config-panel" aria-label="Game Configuration">
             <div class="config-item">
                 <label for="cardCount">Cards to draw:</label>
                 <select id="cardCount">
@@ -84,12 +84,14 @@
                 <button id="markSelectedBtn" class="mark-button" aria-label="Mark selected card as drawn" aria-live="polite">Mark Selected</button>
                 <span id="cardSelectHelp" class="sr-only">Select a card from the dropdown to mark as drawn</span>
             </div>
-        </div>
+        </section>
 
         <!-- Reset Button -->
-        <button id="resetButton" class="reset-button" aria-label="Reset game">
-            <span aria-hidden="true">↻</span> Reset
-        </button>
+        <section aria-label="Game Actions">
+            <button id="resetButton" class="reset-button" aria-label="Reset game">
+                <span aria-hidden="true">↻</span> Reset
+            </button>
+        </section>
 
         <footer>
             <p>&copy; 2026 Spinwheel Playing Cards - ODIN</p>

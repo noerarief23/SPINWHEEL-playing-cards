@@ -115,3 +115,7 @@
 ## 2024-05-20 - Hide Decorative Card Suits from Screen Readers
 **Learning:** When decorative unicode suit symbols (like `♠` or `♥`) are displayed next to their full text names (like "Ace of Spades") in lists or components, screen readers will announce both consecutively, causing a confusing and redundant auditory experience (e.g., "A Spade Suit Ace of Spades").
 **Action:** Always wrap decorative unicode symbols in a `span` or `div` with `aria-hidden="true"`, ensuring only the full semantic text representation is accessible to screen readers, keeping the auditory output clean and concise.
+
+## 2026-08-15 - Semantic Landmarks and Heading Hierarchy
+**Learning:** Found accessibility issue patterns where non-sequential heading levels (like jumping from `h1` directly to `h3`) and missing ARIA landmarks for functional sections (like configuration and actions) cause problems for assistive technology users navigating single-page apps. The `region` role or `aria-label` is necessary on elements containing form fields to provide context.
+**Action:** Always maintain a strict, sequential heading hierarchy (`h1` -> `h2` -> `h3`) within the document. Additionally, ensure all interactive content is wrapped in semantic landmarks (like `<section aria-label="...">` instead of just `<div>`) to allow screen readers to properly identify and jump between distinct areas of the application.
