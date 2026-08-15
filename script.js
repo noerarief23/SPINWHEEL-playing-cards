@@ -618,7 +618,9 @@ function updateCardSelect() {
         optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.insertAdjacentHTML('beforeend', optionsHTML);
+    // ⚡ Bolt: Use innerHTML to completely replace options instead of insertAdjacentHTML
+    // to prevent an O(N^2) DOM memory leak from endlessly appending options on every update.
+    cardSelect.innerHTML = optionsHTML;
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
@@ -927,7 +929,8 @@ function renderCustomDeckList() {
     customDeckCards.forEach((card, index) => {
         html += `
             <li class="custom-deck-item">
-                <span class="${card.color}">${card.display}</span>
+                <span class="${card.color}" aria-hidden="true">${card.display}</span>
+                <span class="sr-only">${getRankName(card.rank)} of ${card.suitName}</span>
                 <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
             </li>
         `;
