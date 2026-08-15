@@ -618,7 +618,8 @@ function updateCardSelect() {
         optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    // ⚡ Bolt: Use innerHTML to overwrite the container and prevent O(N^2) memory leaks
+    // ⚡ Bolt: Use innerHTML to completely replace options instead of insertAdjacentHTML
+    // to prevent an O(N^2) DOM memory leak from endlessly appending options on every update.
     cardSelect.innerHTML = optionsHTML;
 
     // Also reset button state if it was enabled
