@@ -114,3 +114,7 @@
 ## 2026-08-11 - Hiding Decorative Symbols from Screen Readers
 **Learning:** Found an accessibility issue where decorative unicode suit symbols (like `♠` or `♥`) displayed next to their full text names (e.g., "A♠ Ace of Spades") in lists caused redundant and confusing announcements for screen reader users (e.g., reading "A Black Spade Suit Ace of Spades").
 **Action:** When displaying decorative unicode symbols alongside full semantic text, wrap the visual symbols in an element with `aria-hidden="true"`, and provide a visually hidden element (`.sr-only`) containing the complete, clear semantic text to ensure a concise and accurate screen reader experience.
+
+## 2024-05-20 - Hide Decorative Card Suits from Screen Readers
+**Learning:** When decorative unicode suit symbols (like `♠` or `♥`) are displayed next to their full text names (like "Ace of Spades") in lists or components, screen readers will announce both consecutively, causing a confusing and redundant auditory experience (e.g., "A Spade Suit Ace of Spades").
+**Action:** Always wrap decorative unicode symbols in a `span` or `div` with `aria-hidden="true"`, ensuring only the full semantic text representation is accessible to screen readers, keeping the auditory output clean and concise.
