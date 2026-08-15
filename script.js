@@ -618,8 +618,8 @@ function updateCardSelect() {
         optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    // ⚡ Bolt: Use innerHTML to fully overwrite the container contents instead of insertAdjacentHTML('beforeend').
-    // This fixes a severe O(N^2) memory leak where the remaining 52 options were appended endlessly on every UI update without clearing previous nodes.
+    // ⚡ Bolt: Use innerHTML to completely replace options instead of insertAdjacentHTML
+    // to prevent an O(N^2) DOM memory leak from endlessly appending options on every update.
     cardSelect.innerHTML = optionsHTML;
 
     // Also reset button state if it was enabled
@@ -911,7 +911,7 @@ function renderCustomDeckList() {
     updateCustomDeckSelectOptions();
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
+        customDeckList.innerHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
         if (clearCustomDeckBtn) {
             clearCustomDeckBtn.disabled = true;
             clearCustomDeckBtn.title = 'Custom deck is already empty';
@@ -930,7 +930,7 @@ function renderCustomDeckList() {
         html += `
             <li class="custom-deck-item">
                 <span class="${card.color}" aria-hidden="true">${card.display}</span>
-                <span class="sr-only">${getRankName(card.rank)} of ${card.suitName}</span>
+                <span> ${getRankName(card.rank)} of ${card.suitName}</span>
                 <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
             </li>
         `;
