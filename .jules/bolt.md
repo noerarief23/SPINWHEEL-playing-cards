@@ -74,6 +74,15 @@
 ## 2026-08-09 - O(1) Lookups in Dropdown Validation
 **Learning:** In the `updateCustomDeckSelectOptions` function, checking if each card is already in the custom deck inside a loop using `Array.some` resulted in an inefficient O(N²) nested loop complexity. This can cause unnecessary layout thrashing or long frame execution times when iterating over DOM options.
 **Action:** Replaced the `Array.some` lookup inside the loop with an O(1) hash map lookup using a `Set` of the added cards' display properties before the loop. This reduces the complexity to O(N) and significantly improves performance during UI state validation.
+## 2024-05-18 - Fix DOM leak from adjacentHTML when replacing elements
+**Learning:** Using `element.insertAdjacentHTML('beforeend', newHTML)` when attempting to update dynamic lists (e.g., dropdown options) without first clearing the container causes massive O(N^2) DOM memory leaks, as the existing elements are not cleared before the new ones are appended.
+**Action:** When updating dynamic lists that need to be completely refreshed, use `element.innerHTML = newHTML` or manually clear the container first to prevent DOM bloat.
+## 2026-11-23 - DOM Memory Leak with insertAdjacentHTML on List Updates
+**Learning:** Using `insertAdjacentHTML('beforeend', ...)` to update dynamic lists (like a dropdown menu's options) without first clearing the existing contents causes an O(N²) DOM memory leak, as the options simply stack instead of replacing the old ones. This causes bloated DOM and degraded performance with repeated interactions.
+**Action:** When repeatedly updating or rebuilding entire collections inside a container (e.g. `<select>` or `<ul>`), always use `.innerHTML = newHTML` or explicitly clear the container prior to inserting new elements, rather than blindly appending with `insertAdjacentHTML`.
+## 2026-08-11 - Prevent DOM memory leak in dropdown updates
+**Learning:** Updating dynamic lists like dropdown options using `insertAdjacentHTML('beforeend', ...)` inside state-update functions (e.g., `updateCardSelect`) appends new elements without removing the old ones. This results in massive O(N^2) memory leaks and DOM bloat each time the state changes.
+**Action:** When updating dynamic lists or dropdowns where the entire list structure is replaced, manually clear the container first or use `element.innerHTML = newHTML` instead of `insertAdjacentHTML('beforeend', ...)`. This cleanly resets the container and prevents memory leaks.
 ## 2026-08-10 - O(N^2) DOM Bloat via insertAdjacentHTML Appends
 **Learning:** Replacing a `DocumentFragment` append loop with string concatenation (`insertAdjacentHTML('beforeend', optionsHTML)`) for list updates introduces a massive O(N^2) DOM memory leak and continuous reflows if the container's previous children are never cleared.
 **Action:** Always use `element.innerHTML = newHTMLString` when fully rebuilding list items via string concatenation to ensure the previous child elements are safely destroyed before the new ones are added, completely preventing uncontrolled DOM bloat.
@@ -81,3 +90,6 @@
 ## 2024-11-20 - Unconditional DOM Mutating Thrashing
 **Learning:** Unconditionally mutating DOM properties (like `element.disabled`, `element.textContent`, or `element.title`) triggers browser layout and paint invalidation, even if the new value is identical to the existing value. This is especially problematic in high-frequency event handlers or large iteration loops, causing unnecessary reflows and severe layout thrashing.
 **Action:** Always wrap DOM property mutations in conditional checks (e.g., `if (element.textContent !== newText) { element.textContent = newText; }`) to prevent unnecessary reflows.
+## 2024-11-06 - Unconditional DOM Mutations Causing Layout Thrashing
+**Learning:** Unconditionally mutating DOM properties (like `element.disabled = false` or `element.textContent = ...`) triggers browser layout and paint invalidation, even if the new value is identical to the existing value. In loops (like updating 52 options in a dropdown), this results in significant and unnecessary CPU spikes.
+**Action:** Always wrap DOM property mutations in conditional checks (`if (element.disabled) element.disabled = false;`) to ensure the browser only recalculates layout when a state has actually changed.

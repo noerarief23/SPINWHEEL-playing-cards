@@ -881,6 +881,8 @@ function updateCustomDeckSelectOptions() {
         const card = allCards[cardIndex];
         const isAdded = addedCardsSet.has(card.display);
 
+        // ⚡ Bolt: Added conditional checks before mutating DOM properties (.disabled, .textContent)
+        // to prevent unnecessary layout thrashing and paint invalidations during the loop iteration.
         if (isAdded) {
             if (!options[i].disabled) options[i].disabled = true;
             if (!options[i].textContent.endsWith(' (Added)')) {
@@ -926,7 +928,7 @@ function renderCustomDeckList() {
     updateCustomDeckSelectOptions();
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
+        customDeckList.innerHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
         if (clearCustomDeckBtn) {
             clearCustomDeckBtn.disabled = true;
             clearCustomDeckBtn.title = 'Custom deck is already empty';
@@ -945,7 +947,7 @@ function renderCustomDeckList() {
         html += `
             <li class="custom-deck-item">
                 <span class="${card.color}" aria-hidden="true">${card.display}</span>
-                <span class="sr-only">${getRankName(card.rank)} of ${card.suitName}</span>
+                <span> ${getRankName(card.rank)} of ${card.suitName}</span>
                 <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
             </li>
         `;
