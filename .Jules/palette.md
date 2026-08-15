@@ -111,3 +111,24 @@
 ## 2024-05-18 - Managing Focus in Destructive Actions
 **Learning:** When a destructive action button (like Reset) uses inline confirmation state and then disables itself synchronously upon success, keyboard focus will drop to the document body, breaking the keyboard navigation flow.
 **Action:** Always capture `document.activeElement` before executing the destructive action. If the triggering button was focused, explicitly restore focus to the next logical interactive element (e.g., the primary action button like `spinButton`) after the action completes.
+## 2026-08-13 - Redundant Screen Reader Announcements for Decorative Icons
+**Learning:** Found an accessibility issue pattern where decorative elements containing unicode symbols (like `5♥`) were being announced by screen readers alongside their fully spelled-out text equivalents (like "5 of Hearts"). This creates a redundant and annoying auditory experience (e.g. "5 hearts 5 of Hearts").
+**Action:** Always apply `aria-hidden="true"` to elements containing decorative unicode suit symbols when the full text name is already adjacent and visible in the DOM. Avoid adding an additional `.sr-only` element if the full text name is already present, to prevent double-reading by screen readers.
+
+## 2026-08-10 - Hiding Decorative Symbols Next to Full Text
+**Learning:** Found an accessibility issue where a decorative unicode suit symbol (like `A♠`) in the card history display was read aloud by screen readers alongside its adjacent full-text name (like "Ace of Spades"). This causes a redundant and confusing double-reading experience (e.g., "A Spades Ace of Spades").
+**Action:** Always apply `aria-hidden="true"` to decorative symbols or shorthand displays when a full-text, visible alternative is immediately adjacent, to prevent double-reading by screen readers.
+## 2026-08-11 - Hiding Decorative Symbols from Screen Readers
+**Learning:** Found an accessibility issue where decorative unicode suit symbols (like `♠` or `♥`) displayed next to their full text names (e.g., "A♠ Ace of Spades") in lists caused redundant and confusing announcements for screen reader users (e.g., reading "A Black Spade Suit Ace of Spades").
+**Action:** When displaying decorative unicode symbols alongside full semantic text, wrap the visual symbols in an element with `aria-hidden="true"`, and provide a visually hidden element (`.sr-only`) containing the complete, clear semantic text to ensure a concise and accurate screen reader experience.
+
+## 2024-05-20 - Hide Decorative Card Suits from Screen Readers
+**Learning:** When decorative unicode suit symbols (like `♠` or `♥`) are displayed next to their full text names (like "Ace of Spades") in lists or components, screen readers will announce both consecutively, causing a confusing and redundant auditory experience (e.g., "A Spade Suit Ace of Spades").
+**Action:** Always wrap decorative unicode symbols in a `span` or `div` with `aria-hidden="true"`, ensuring only the full semantic text representation is accessible to screen readers, keeping the auditory output clean and concise.
+
+## 2026-08-15 - Semantic Landmarks and Heading Hierarchy
+**Learning:** Found accessibility issue patterns where non-sequential heading levels (like jumping from `h1` directly to `h3`) and missing ARIA landmarks for functional sections (like configuration and actions) cause problems for assistive technology users navigating single-page apps. The `region` role or `aria-label` is necessary on elements containing form fields to provide context.
+**Action:** Always maintain a strict, sequential heading hierarchy (`h1` -> `h2` -> `h3`) within the document. Additionally, ensure all interactive content is wrapped in semantic landmarks (like `<section aria-label="...">` instead of just `<div>`) to allow screen readers to properly identify and jump between distinct areas of the application.
+## 2026-08-07 - Visible Context for Sighted Users in Lists
+**Learning:** Found a UX/a11y issue in the custom deck builder list: The full card names (e.g., "Ace of Spades") were hidden from sighted users using `.sr-only`, leaving only the symbol ("A♠"). This created a disconnect between the dropdown menu (which showed the full name) and the selected list, making it harder for users to quickly verify their selections. Sighted users benefit from clear, descriptive text just as much as screen reader users.
+**Action:** Always aim to make descriptive text visible to all users unless it creates extreme clutter. If an adjacent symbol is purely decorative, hide the symbol from screen readers (`aria-hidden="true"`) and show the text, rather than the other way around.

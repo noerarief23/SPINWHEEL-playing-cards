@@ -360,7 +360,7 @@ main {
     flex-direction: column;
 }
 
-.history-panel h3 {
+.history-panel h2 {
     color: #ffffff;
     text-align: center;
     margin-bottom: 15px;

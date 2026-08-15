@@ -643,6 +643,7 @@ function addToHistory(card) {
     const cardDisplay = document.createElement('div');
     cardDisplay.className = `history-item-card ${card.color}`;
     cardDisplay.textContent = card.display;
+    cardDisplay.setAttribute('aria-hidden', 'true');
     
     const cardName = document.createElement('div');
     cardName.className = 'history-item-name';
@@ -908,7 +909,7 @@ function renderCustomDeckList() {
     updateCustomDeckSelectOptions();
     customDeckList.innerHTML = '';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<li style="color: #999; font-style: italic; list-style: none;">No cards added yet. Select a card above to build your custom deck.</li>';
+        customDeckList.innerHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
         if (clearCustomDeckBtn) {
             clearCustomDeckBtn.disabled = true;
             clearCustomDeckBtn.title = 'Custom deck is already empty';
@@ -926,7 +927,8 @@ function renderCustomDeckList() {
     customDeckCards.forEach((card, index) => {
         html += `
             <li class="custom-deck-item">
-                <span class="${card.color}">${card.display}</span>
+                <span class="${card.color}" aria-hidden="true">${card.display}</span>
+                <span> ${getRankName(card.rank)} of ${card.suitName}</span>
                 <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
             </li>
         `;
