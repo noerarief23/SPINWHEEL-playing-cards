@@ -566,11 +566,22 @@ function getRankName(rank) {
 
 // Update stats display
 function updateStats() {
-    remainingCountSpan.textContent = availableCards.length;
-    drawnCountSpan.textContent = drawnCards.length;
+    // ⚡ Bolt: Conditionally mutate DOM text content to avoid layout thrashing
+    const newRemainingStr = availableCards.length.toString();
+    if (remainingCountSpan.textContent !== newRemainingStr) {
+        remainingCountSpan.textContent = newRemainingStr;
+    }
+
+    const newDrawnStr = drawnCards.length.toString();
+    if (drawnCountSpan.textContent !== newDrawnStr) {
+        drawnCountSpan.textContent = newDrawnStr;
+    }
     
     // Update canvas aria-label to reflect current card count
-    canvas.setAttribute('aria-label', `Spin wheel with ${availableCards.length} playing cards`);
+    const newAriaLabel = `Spin wheel with ${availableCards.length} playing cards`;
+    if (canvas.getAttribute('aria-label') !== newAriaLabel) {
+        canvas.setAttribute('aria-label', newAriaLabel);
+    }
     
     // Update the card select dropdown
     updateCardSelect();
@@ -578,22 +589,22 @@ function updateStats() {
     // Update spin button state
     const btnText = spinButton.querySelector('.button-text');
     if (availableCards.length === 0) {
-        spinButton.disabled = true;
-        if (btnText) btnText.textContent = 'NO CARDS';
-        spinButton.title = 'Deck is empty, please reset';
+        if (!spinButton.disabled) spinButton.disabled = true;
+        if (btnText && btnText.textContent !== 'NO CARDS') btnText.textContent = 'NO CARDS';
+        if (spinButton.title !== 'Deck is empty, please reset') spinButton.title = 'Deck is empty, please reset';
     } else if (!isSpinning) {
-        spinButton.disabled = false;
-        if (btnText) btnText.textContent = 'SPIN';
-        spinButton.removeAttribute('title');
+        if (spinButton.disabled) spinButton.disabled = false;
+        if (btnText && btnText.textContent !== 'SPIN') btnText.textContent = 'SPIN';
+        if (spinButton.hasAttribute('title')) spinButton.removeAttribute('title');
     }
 
     // Update reset button state
     if (drawnCards.length === 0) {
-        resetButton.disabled = true;
-        resetButton.title = 'Game is already in initial state';
+        if (!resetButton.disabled) resetButton.disabled = true;
+        if (resetButton.title !== 'Game is already in initial state') resetButton.title = 'Game is already in initial state';
     } else {
-        resetButton.disabled = false;
-        resetButton.removeAttribute('title');
+        if (resetButton.disabled) resetButton.disabled = false;
+        if (resetButton.hasAttribute('title')) resetButton.removeAttribute('title');
     }
 }
 
@@ -605,12 +616,12 @@ function updateCardSelect() {
     // Clear existing options except the first one
     if (availableCards.length === 0) {
         optionsHTML = '<option value="">-- No cards available --</option>';
-        cardSelect.disabled = true;
-        cardSelect.title = 'No cards left in the deck';
+        if (!cardSelect.disabled) cardSelect.disabled = true;
+        if (cardSelect.title !== 'No cards left in the deck') cardSelect.title = 'No cards left in the deck';
     } else {
         optionsHTML = '<option value="">-- Select a card --</option>';
-        cardSelect.disabled = false;
-        cardSelect.removeAttribute('title');
+        if (cardSelect.disabled) cardSelect.disabled = false;
+        if (cardSelect.hasAttribute('title')) cardSelect.removeAttribute('title');
     }
     
     // ⚡ Bolt: Use string concatenation for faster DOM replacement
@@ -618,12 +629,16 @@ function updateCardSelect() {
         optionsHTML += `<option value="${index}">${card.display} - ${getRankName(card.rank)} of ${card.suitName}</option>`;
     });
 
-    cardSelect.innerHTML = optionsHTML;
+    // ⚡ Bolt: Use innerHTML to fully overwrite the container contents instead of insertAdjacentHTML('beforeend').
+    // This fixes a severe O(N^2) memory leak where the remaining 52 options were appended endlessly on every UI update without clearing previous nodes.
+    if (cardSelect.innerHTML !== optionsHTML) {
+        cardSelect.innerHTML = optionsHTML;
+    }
 
     // Also reset button state if it was enabled
     if (markSelectedBtn) {
-        markSelectedBtn.disabled = true;
-        markSelectedBtn.title = 'Select a card first';
+        if (!markSelectedBtn.disabled) markSelectedBtn.disabled = true;
+        if (markSelectedBtn.title !== 'Select a card first') markSelectedBtn.title = 'Select a card first';
     }
 }
 
@@ -875,7 +890,7 @@ function updateCustomDeckSelectOptions() {
             }
         } else {
             if (options[i].disabled) options[i].disabled = false;
-            if (options[i].textContent.endsWith(' (Added)')) {
+            if (options[i].textContent.includes(' (Added)')) {
                 options[i].textContent = options[i].textContent.replace(' (Added)', '');
             }
             availableCount++;
@@ -883,13 +898,13 @@ function updateCustomDeckSelectOptions() {
     }
 
     if (availableCount === 0 && customDeckCards.length > 0) {
-        customDeckSelect.disabled = true;
-        customDeckSelect.title = 'All available cards have been added';
-        options[0].textContent = '-- All cards added --';
+        if (!customDeckSelect.disabled) customDeckSelect.disabled = true;
+        if (customDeckSelect.title !== 'All available cards have been added') customDeckSelect.title = 'All available cards have been added';
+        if (options[0].textContent !== '-- All cards added --') options[0].textContent = '-- All cards added --';
     } else {
-        customDeckSelect.disabled = false;
-        customDeckSelect.removeAttribute('title');
-        options[0].textContent = '-- Select a card to add --';
+        if (customDeckSelect.disabled) customDeckSelect.disabled = false;
+        if (customDeckSelect.hasAttribute('title')) customDeckSelect.removeAttribute('title');
+        if (options[0].textContent !== '-- Select a card to add --') options[0].textContent = '-- Select a card to add --';
     }
 }
 
