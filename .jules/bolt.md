@@ -77,3 +77,6 @@
 ## 2026-08-11 - Prevent DOM memory leak in dropdown updates
 **Learning:** Updating dynamic lists like dropdown options using `insertAdjacentHTML('beforeend', ...)` inside state-update functions (e.g., `updateCardSelect`) appends new elements without removing the old ones. This results in massive O(N^2) memory leaks and DOM bloat each time the state changes.
 **Action:** When updating dynamic lists or dropdowns where the entire list structure is replaced, manually clear the container first or use `element.innerHTML = newHTML` instead of `insertAdjacentHTML('beforeend', ...)`. This cleanly resets the container and prevents memory leaks.
+## 2026-08-10 - O(N^2) DOM Bloat via insertAdjacentHTML Appends
+**Learning:** Replacing a `DocumentFragment` append loop with string concatenation (`insertAdjacentHTML('beforeend', optionsHTML)`) for list updates introduces a massive O(N^2) DOM memory leak and continuous reflows if the container's previous children are never cleared.
+**Action:** Always use `element.innerHTML = newHTMLString` when fully rebuilding list items via string concatenation to ensure the previous child elements are safely destroyed before the new ones are added, completely preventing uncontrolled DOM bloat.
