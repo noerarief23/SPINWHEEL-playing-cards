@@ -77,3 +77,7 @@
 ## 2026-08-10 - O(N^2) DOM Bloat via insertAdjacentHTML Appends
 **Learning:** Replacing a `DocumentFragment` append loop with string concatenation (`insertAdjacentHTML('beforeend', optionsHTML)`) for list updates introduces a massive O(N^2) DOM memory leak and continuous reflows if the container's previous children are never cleared.
 **Action:** Always use `element.innerHTML = newHTMLString` when fully rebuilding list items via string concatenation to ensure the previous child elements are safely destroyed before the new ones are added, completely preventing uncontrolled DOM bloat.
+
+## 2024-11-20 - Unconditional DOM Mutating Thrashing
+**Learning:** Unconditionally mutating DOM properties (like `element.disabled`, `element.textContent`, or `element.title`) triggers browser layout and paint invalidation, even if the new value is identical to the existing value. This is especially problematic in high-frequency event handlers or large iteration loops, causing unnecessary reflows and severe layout thrashing.
+**Action:** Always wrap DOM property mutations in conditional checks (e.g., `if (element.textContent !== newText) { element.textContent = newText; }`) to prevent unnecessary reflows.
