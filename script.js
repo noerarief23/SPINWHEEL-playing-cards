@@ -528,17 +528,20 @@ const SUIT_MAP = {
 
 // Show result
 function showResult() {
-    resultCard.innerHTML = '';
+    // ⚡ Bolt: Reuse existing img node instead of innerHTML='' and createElement to reduce GC spikes
+    let cardImage = resultCard.querySelector('img.card-face-image');
+    if (!cardImage) {
+        cardImage = document.createElement('img');
+        cardImage.className = 'card-face-image';
+        cardImage.alt = ""; // Empty alt text since the aria-live text contains the same info
+        cardImage.setAttribute('aria-hidden', 'true');
+        resultCard.appendChild(cardImage);
+    }
     
-    const cardImage = document.createElement('img');
-    cardImage.className = 'card-face-image';
     cardImage.src = `cards/${RANK_MAP[currentCard.rank]}_of_${SUIT_MAP[currentCard.suitName]}.svg`;
-    cardImage.alt = ""; // Empty alt text since the aria-live text contains the same info
-    cardImage.setAttribute('aria-hidden', 'true');
-    resultCard.appendChild(cardImage);
     
-    resultCard.className = 'result-card';
-    resultCard.classList.add(currentCard.color);
+    // Clear previous color classes before adding new one
+    resultCard.className = 'result-card ' + currentCard.color;
     
     setTimeout(() => {
         resultCard.classList.add('show');
@@ -652,20 +655,14 @@ function addToHistory(card) {
         return;
     }
     
-    const historyItem = document.createElement('li');
-    historyItem.className = 'history-item';
-    
-    const cardDisplay = document.createElement('div');
-    cardDisplay.className = `history-item-card ${card.color}`;
-    cardDisplay.textContent = card.display;
-    cardDisplay.setAttribute('aria-hidden', 'true');
-    
-    const cardName = document.createElement('div');
-    cardName.className = 'history-item-name';
-    cardName.textContent = `${getRankName(card.rank)} of ${card.suitName}`;
-    
-    historyItem.appendChild(cardDisplay);
-    historyItem.appendChild(cardName);
+    // ⚡ Bolt: Use string concatenation and insertAdjacentHTML for much faster DOM rendering
+    // compared to iterative document.createElement calls
+    const historyItemHTML = `
+        <li class="history-item">
+            <div class="history-item-card ${card.color}" aria-hidden="true">${card.display}</div>
+            <div class="history-item-name">${getRankName(card.rank)} of ${card.suitName}</div>
+        </li>
+    `;
     
     // Remove empty state if it exists
     const emptyState = cardHistoryDiv.querySelector('.empty-state');
@@ -674,7 +671,7 @@ function addToHistory(card) {
     }
 
     // Add at the top
-    cardHistoryDiv.insertBefore(historyItem, cardHistoryDiv.firstChild);
+    cardHistoryDiv.insertAdjacentHTML('afterbegin', historyItemHTML);
 }
 
 // Helper to show inline feedback
