@@ -42,6 +42,8 @@ const resetButton = document.getElementById('resetButton');
 const cardHistoryDiv = document.getElementById('cardHistory');
 const remainingCountSpan = document.getElementById('remainingCount');
 const drawnCountSpan = document.getElementById('drawnCount');
+const deckProgressFill = document.getElementById('deckProgressFill');
+const deckProgressContainer = document.querySelector('.deck-progress-container');
 
 // Custom Deck configuration
 const customDeckContainer = document.getElementById('customDeckContainer');
@@ -580,6 +582,14 @@ function updateStats() {
         drawnCountSpan.textContent = newDrawnStr;
     }
     
+    // Update progress bar
+    if (deckProgressFill && deckProgressContainer) {
+        const totalCards = availableCards.length + drawnCards.length;
+        const percentage = totalCards === 0 ? 0 : (drawnCards.length / totalCards) * 100;
+        deckProgressFill.style.width = `${percentage}%`;
+        deckProgressContainer.setAttribute('aria-valuenow', percentage.toFixed(0));
+    }
+
     // Update canvas aria-label to reflect current card count
     const newAriaLabel = `Spin wheel with ${availableCards.length} playing cards`;
     if (canvas.getAttribute('aria-label') !== newAriaLabel) {
