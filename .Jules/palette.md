@@ -136,3 +136,7 @@
 ## 2026-08-16 - Spatial Visualization of Abstract Constraints
 **Learning:** Found an opportunity to improve the UX around abstract limits, like the number of cards drawn from a deck. Users typically have to read text (e.g. "Drawn: 5 / Remaining: 47") to understand their progress. This creates minor cognitive load. Visualizing this limit spatially makes the state of the system immediately obvious at a glance.
 **Action:** When users are operating within a bounded limit (like drawing from a fixed pool of items), introduce spatial visualizations (like a progress bar) to complement textual representations. Always ensure these visual elements include appropriate ARIA roles (e.g. `role="progressbar"`) and properties (e.g. `aria-valuenow`, `aria-valuemin`, `aria-valuemax`) so that assistive technologies can also convey this semantic information.
+
+## 2026-08-17 - Contextual Tooltips for Icon-Only Actions
+**Learning:** Found an accessibility/UX issue where icon-only buttons (like the `×` button for removing custom cards) had `aria-label` attributes for screen readers, but lacked `title` attributes. This meant sighted mouse users had no way to receive a tooltip explaining the action before clicking, which creates ambiguity.
+**Action:** Always provide explicit native tooltips using the `title` attribute for icon-only action buttons (e.g., `title="Remove card"`), ensuring parity between the visual tooltip and the screen reader `aria-label`.

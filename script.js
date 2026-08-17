@@ -955,7 +955,7 @@ function renderCustomDeckList() {
             <li class="custom-deck-item">
                 <span class="${card.color}" aria-hidden="true">${card.display}</span>
                 <span> ${getRankName(card.rank)} of ${card.suitName}</span>
-                <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
+                <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" title="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
             </li>
         `;
     });
