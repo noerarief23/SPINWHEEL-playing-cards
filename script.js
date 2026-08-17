@@ -586,8 +586,17 @@ function updateStats() {
     if (deckProgressFill && deckProgressContainer) {
         const totalCards = availableCards.length + drawnCards.length;
         const percentage = totalCards === 0 ? 0 : (drawnCards.length / totalCards) * 100;
-        deckProgressFill.style.width = `${percentage}%`;
-        deckProgressContainer.setAttribute('aria-valuenow', percentage.toFixed(0));
+
+        // ⚡ Bolt: Wrap DOM property mutations in conditional checks to prevent unconditional layout thrashing
+        const newWidth = `${percentage}%`;
+        if (deckProgressFill.style.width !== newWidth) {
+            deckProgressFill.style.width = newWidth;
+        }
+
+        const newAriaVal = percentage.toFixed(0);
+        if (deckProgressContainer.getAttribute('aria-valuenow') !== newAriaVal) {
+            deckProgressContainer.setAttribute('aria-valuenow', newAriaVal);
+        }
     }
 
     // Update canvas aria-label to reflect current card count
@@ -644,8 +653,10 @@ function updateCardSelect() {
 
     // ⚡ Bolt: Use innerHTML to fully overwrite the container contents instead of insertAdjacentHTML('beforeend').
     // This fixes a severe O(N^2) memory leak where the remaining 52 options were appended endlessly on every UI update without clearing previous nodes.
-    if (cardSelect.innerHTML !== optionsHTML) {
+    // Also use O(1) JS string caching to avoid O(N) DOM serialization overhead from reading .innerHTML
+    if (cardSelect._lastHTML !== optionsHTML) {
         cardSelect.innerHTML = optionsHTML;
+        cardSelect._lastHTML = optionsHTML;
     }
 
     // Also reset button state if it was enabled
@@ -933,34 +944,37 @@ function populateCustomDeckSelect() {
 
 function renderCustomDeckList() {
     updateCustomDeckSelectOptions();
-    customDeckList.innerHTML = '';
+    // ⚡ Bolt: Removed redundant `innerHTML = ''` to prevent double-rendering and GC spikes
+    let html = '';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
+        html = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
         if (clearCustomDeckBtn) {
             clearCustomDeckBtn.disabled = true;
             clearCustomDeckBtn.title = 'Custom deck is already empty';
         }
-        return;
+    } else {
+        if (clearCustomDeckBtn) {
+            clearCustomDeckBtn.disabled = false;
+            clearCustomDeckBtn.removeAttribute('title');
+        }
+
+        // ⚡ Bolt: Use string concatenation instead of iterative createElement for faster rendering
+        customDeckCards.forEach((card, index) => {
+            html += `
+                <li class="custom-deck-item">
+                    <span class="${card.color}" aria-hidden="true">${card.display}</span>
+                    <span> ${getRankName(card.rank)} of ${card.suitName}</span>
+                    <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
+                </li>
+            `;
+        });
     }
 
-    if (clearCustomDeckBtn) {
-        clearCustomDeckBtn.disabled = false;
-        clearCustomDeckBtn.removeAttribute('title');
+    // ⚡ Bolt: Use O(1) JS string caching to avoid O(N) DOM serialization overhead from reading .innerHTML
+    if (customDeckList._lastHTML !== html) {
+        customDeckList.innerHTML = html;
+        customDeckList._lastHTML = html;
     }
-
-    // ⚡ Bolt: Use string concatenation instead of iterative createElement for faster rendering
-    let html = '';
-    customDeckCards.forEach((card, index) => {
-        html += `
-            <li class="custom-deck-item">
-                <span class="${card.color}" aria-hidden="true">${card.display}</span>
-                <span> ${getRankName(card.rank)} of ${card.suitName}</span>
-                <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
-            </li>
-        `;
-    });
-
-    customDeckList.innerHTML = html;
 }
 
 // ⚡ Bolt: Event delegation for custom deck list to avoid inline onclick handlers in string templates
