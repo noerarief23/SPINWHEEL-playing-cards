@@ -644,8 +644,10 @@ function updateCardSelect() {
 
     // ⚡ Bolt: Use innerHTML to fully overwrite the container contents instead of insertAdjacentHTML('beforeend').
     // This fixes a severe O(N^2) memory leak where the remaining 52 options were appended endlessly on every UI update without clearing previous nodes.
-    if (cardSelect.innerHTML !== optionsHTML) {
+    // Also, checking innerHTML directly forces DOM serialization. Cache the string to do an O(1) equality check instead.
+    if (cardSelect._lastHTML !== optionsHTML) {
         cardSelect.innerHTML = optionsHTML;
+        cardSelect._lastHTML = optionsHTML;
     }
 
     // Also reset button state if it was enabled
