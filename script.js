@@ -644,8 +644,10 @@ function updateCardSelect() {
 
     // ⚡ Bolt: Use innerHTML to fully overwrite the container contents instead of insertAdjacentHTML('beforeend').
     // This fixes a severe O(N^2) memory leak where the remaining 52 options were appended endlessly on every UI update without clearing previous nodes.
-    if (cardSelect.innerHTML !== optionsHTML) {
+    // Cache HTML to prevent O(N) DOM serialization overhead during equality checks
+    if (cardSelect._lastHTML !== optionsHTML) {
         cardSelect.innerHTML = optionsHTML;
+        cardSelect._lastHTML = optionsHTML;
     }
 
     // Also reset button state if it was enabled
@@ -933,34 +935,37 @@ function populateCustomDeckSelect() {
 
 function renderCustomDeckList() {
     updateCustomDeckSelectOptions();
-    customDeckList.innerHTML = '';
+    let newHTML = '';
+
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
+        newHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
         if (clearCustomDeckBtn) {
             clearCustomDeckBtn.disabled = true;
             clearCustomDeckBtn.title = 'Custom deck is already empty';
         }
-        return;
+    } else {
+        if (clearCustomDeckBtn) {
+            clearCustomDeckBtn.disabled = false;
+            clearCustomDeckBtn.removeAttribute('title');
+        }
+
+        // ⚡ Bolt: Use string concatenation instead of iterative createElement for faster rendering
+        customDeckCards.forEach((card, index) => {
+            newHTML += `
+                <li class="custom-deck-item">
+                    <span class="${card.color}" aria-hidden="true">${card.display}</span>
+                    <span> ${getRankName(card.rank)} of ${card.suitName}</span>
+                    <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
+                </li>
+            `;
+        });
     }
 
-    if (clearCustomDeckBtn) {
-        clearCustomDeckBtn.disabled = false;
-        clearCustomDeckBtn.removeAttribute('title');
+    // ⚡ Bolt: Cache HTML string to prevent O(N) DOM serialization overhead during updates
+    if (customDeckList._lastHTML !== newHTML) {
+        customDeckList.innerHTML = newHTML;
+        customDeckList._lastHTML = newHTML;
     }
-
-    // ⚡ Bolt: Use string concatenation instead of iterative createElement for faster rendering
-    let html = '';
-    customDeckCards.forEach((card, index) => {
-        html += `
-            <li class="custom-deck-item">
-                <span class="${card.color}" aria-hidden="true">${card.display}</span>
-                <span> ${getRankName(card.rank)} of ${card.suitName}</span>
-                <button class="remove-custom-card" aria-label="Remove ${getRankName(card.rank)} of ${card.suitName}" data-index="${index}">×</button>
-            </li>
-        `;
-    });
-
-    customDeckList.innerHTML = html;
 }
 
 // ⚡ Bolt: Event delegation for custom deck list to avoid inline onclick handlers in string templates
