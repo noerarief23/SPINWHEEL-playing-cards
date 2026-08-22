@@ -96,3 +96,7 @@
 ## 2026-11-25 - Prevent Garbage Collection Spikes during Result Rendering
 **Learning:** During rapid state-machine transitions like the end of a spin animation, completely destroying a DOM node via `innerHTML = ''` and immediately re-allocating a new identical tag (like an `<img>`) via `document.createElement` causes unnecessary CPU spikes due to garbage collection processing. Similarly, looping multiple `document.createElement` calls to build list items is significantly slower than parsing raw HTML strings.
 **Action:** When updating a predictable UI component (like the result card image), reuse the existing DOM node by modifying its properties instead of destroying and recreating it. For constructing new distinct elements like history list items, use string concatenation with `insertAdjacentHTML` to avoid JS-C++ API boundaries and DOM memory overhead.
+
+## 2024-11-20 - Cache HTML Strings to Prevent O(N) DOM Serialization
+**Learning:** Checking equality of `.innerHTML` against a string forces the browser to serialize the DOM subtree via C++, creating significant O(N) serialization overhead, which becomes problematic during frequent UI updates. Writing to `innerHTML` multiple times within a function also triggers unnecessary repaints.
+**Action:** Cache the assigned string in a custom JS property (e.g., `element._lastHTML`) and use it for O(1) equality checks instead of `.innerHTML`. Also, when building complex strings for replacement, construct the full string in memory first and assign it once to avoid double writes.
