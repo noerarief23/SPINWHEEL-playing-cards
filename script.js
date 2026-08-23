@@ -644,8 +644,9 @@ function updateCardSelect() {
 
     // ⚡ Bolt: Use innerHTML to fully overwrite the container contents instead of insertAdjacentHTML('beforeend').
     // This fixes a severe O(N^2) memory leak where the remaining 52 options were appended endlessly on every UI update without clearing previous nodes.
-    if (cardSelect.innerHTML !== optionsHTML) {
+    if (cardSelect._lastHTML !== optionsHTML) {
         cardSelect.innerHTML = optionsHTML;
+        cardSelect._lastHTML = optionsHTML;
     }
 
     // Also reset button state if it was enabled
@@ -933,9 +934,12 @@ function populateCustomDeckSelect() {
 
 function renderCustomDeckList() {
     updateCustomDeckSelectOptions();
-    customDeckList.innerHTML = '';
+    const emptyStateHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
     if (customDeckCards.length === 0) {
-        customDeckList.innerHTML = '<li class="empty-state">No cards added yet. Select a card above to build your custom deck.</li>';
+        if (customDeckList._lastHTML !== emptyStateHTML) {
+            customDeckList.innerHTML = emptyStateHTML;
+            customDeckList._lastHTML = emptyStateHTML;
+        }
         if (clearCustomDeckBtn) {
             clearCustomDeckBtn.disabled = true;
             clearCustomDeckBtn.title = 'Custom deck is already empty';
@@ -960,7 +964,10 @@ function renderCustomDeckList() {
         `;
     });
 
-    customDeckList.innerHTML = html;
+    if (customDeckList._lastHTML !== html) {
+        customDeckList.innerHTML = html;
+        customDeckList._lastHTML = html;
+    }
 }
 
 // ⚡ Bolt: Event delegation for custom deck list to avoid inline onclick handlers in string templates
