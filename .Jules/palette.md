@@ -136,3 +136,7 @@
 ## 2026-08-16 - Spatial Visualization of Abstract Constraints
 **Learning:** Found an opportunity to improve the UX around abstract limits, like the number of cards drawn from a deck. Users typically have to read text (e.g. "Drawn: 5 / Remaining: 47") to understand their progress. This creates minor cognitive load. Visualizing this limit spatially makes the state of the system immediately obvious at a glance.
 **Action:** When users are operating within a bounded limit (like drawing from a fixed pool of items), introduce spatial visualizations (like a progress bar) to complement textual representations. Always ensure these visual elements include appropriate ARIA roles (e.g. `role="progressbar"`) and properties (e.g. `aria-valuenow`, `aria-valuemin`, `aria-valuemax`) so that assistive technologies can also convey this semantic information.
+
+## 2024-05-21 - Spatial Visualization of Abstract Constraints (aria-valuetext)
+**Learning:** When using `role="progressbar"` to visualize an abstract limit (like a pool of items), setting `aria-valuenow` (as a percentage) is insufficient. Screen readers will just announce "6 percent", which loses the semantic context of the limit (e.g., "3 of 52").
+**Action:** When creating progress bars for abstract boundaries, always include an `aria-valuetext` attribute containing the exact semantic ratio string to ensure assistive technologies receive the complete context.
