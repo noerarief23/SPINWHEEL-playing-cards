@@ -136,3 +136,7 @@
 ## 2026-08-16 - Spatial Visualization of Abstract Constraints
 **Learning:** Found an opportunity to improve the UX around abstract limits, like the number of cards drawn from a deck. Users typically have to read text (e.g. "Drawn: 5 / Remaining: 47") to understand their progress. This creates minor cognitive load. Visualizing this limit spatially makes the state of the system immediately obvious at a glance.
 **Action:** When users are operating within a bounded limit (like drawing from a fixed pool of items), introduce spatial visualizations (like a progress bar) to complement textual representations. Always ensure these visual elements include appropriate ARIA roles (e.g. `role="progressbar"`) and properties (e.g. `aria-valuenow`, `aria-valuemin`, `aria-valuemax`) so that assistive technologies can also convey this semantic information.
+
+## 2026-08-17 - Semantic Meaning for Progress Bars
+**Learning:** Found that visual progress bars representing a ratio (like "5 of 52 cards drawn") lack semantic meaning for screen reader users if they only use `aria-valuenow` (which just reads out a percentage number like "10").
+**Action:** Always complement `role="progressbar"` with `aria-valuetext` when the progress represents a specific ratio or bounded constraint to convey the exact semantic meaning (e.g., "5 of 52") to screen reader users.
