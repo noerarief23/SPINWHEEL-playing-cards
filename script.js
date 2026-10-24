@@ -588,6 +588,7 @@ function updateStats() {
         const percentage = totalCards === 0 ? 0 : (drawnCards.length / totalCards) * 100;
         deckProgressFill.style.width = `${percentage}%`;
         deckProgressContainer.setAttribute('aria-valuenow', percentage.toFixed(0));
+        deckProgressContainer.setAttribute('aria-valuetext', `${drawnCards.length} of ${totalCards}`);
     }
 
     // Update canvas aria-label to reflect current card count
